@@ -8,7 +8,7 @@ this page is the plain-language version, updated as things move forward.
 
 ---
 
-## Current stage: tooling and quality gates
+## Current stage: seven contracts implemented
 
 **What's done:**
 
@@ -22,14 +22,17 @@ this page is the plain-language version, updated as things move forward.
 - First architecture test in place and passing, it automatically fails CI
   if the core ever ends up depending on a specific third-party module,
   turning a written rule into an enforced one.
+- The seven public contracts (`Module`, `Resource`, `Blueprint`, `Field`,
+  `Action`, `Layout`, `Repository`) implemented as typed skeletons, each
+  with unit tests covering their core behavior: Blueprint's immutability,
+  Field's identity-separate-from-persistence rule, Module's optional hooks,
+  and the five v1 Layout types (Section, Tabs, Grid, Card, Column).
 
 **Next up:**
 
-- Implementing the seven public contracts (`Module`, `Resource`,
-  `Blueprint`, `Field`, `Action`, `Layout`, `Repository`) as empty,
-  well-typed skeletons.
 - The design system (base CSS tokens for the panel).
 - The first real Field (`Text`), end to end.
+- `PostResource` built end to end on top of the seven contracts.
 
 ## Why this page exists
 

@@ -9,7 +9,7 @@ projecto avança.
 
 ---
 
-## Estado actual: tooling e portões de qualidade
+## Estado actual: sete contratos implementados
 
 **O que já está feito:**
 
@@ -23,14 +23,18 @@ projecto avança.
 - Primeiro teste de arquitectura em vigor e a passar, falha automaticamente
   o CI se o core alguma vez passar a depender de um módulo de terceiros
   específico, transforma uma regra escrita numa regra aplicada.
+- Os sete contratos públicos (`Module`, `Resource`, `Blueprint`, `Field`,
+  `Action`, `Layout`, `Repository`) implementados como esqueletos tipados,
+  cada um com testes unitários que cobrem o seu comportamento central: a
+  imutabilidade do Blueprint, a regra de identidade separada de persistência
+  do Field, os hooks opcionais do Module, e os cinco tipos de Layout da v1
+  (Section, Tabs, Grid, Card, Column).
 
 **A seguir:**
 
-- Implementar os sete contratos públicos (`Module`, `Resource`,
-  `Blueprint`, `Field`, `Action`, `Layout`, `Repository`) como esqueletos
-  vazios, mas bem tipados.
 - O design system (tokens de CSS base do painel).
 - O primeiro Field real (`Text`), de ponta a ponta.
+- O `PostResource` construído de ponta a ponta sobre os sete contratos.
 
 ## Porque existe esta página
 
