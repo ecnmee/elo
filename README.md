@@ -1,5 +1,13 @@
 🇬🇧 English | 🇵🇹 [Português](README.pt.md)
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/logo-light.png">
+    <img alt="Elo" src=".github/assets/logo-light.png" width="280">
+  </picture>
+</p>
+
 # Elo
 
 **A declarative framework for website management, built on Laravel.**
@@ -61,6 +69,11 @@ This repository is the public, single-package distribution of Elo, split
 from the [`ecnmee/elo-monorepo`](https://github.com/ecnmee/elo-monorepo)
 development monorepo, where core development, architecture documentation
 (ADR-001/002/003), and issue discussion happen.
+
+## Development progress
+
+Following along? See [PROGRESS.md](PROGRESS.md) for a plain-language,
+regularly updated log of where the project stands.
 
 ## Contributing
 

@@ -1,5 +1,13 @@
 🇵🇹 Português | 🇬🇧 [English](README.md)
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/logo-light.png">
+    <img alt="Elo" src=".github/assets/logo-light.png" width="280">
+  </picture>
+</p>
+
 # Elo
 
 **Framework declarativo para gestão de websites, construído sobre Laravel.**
@@ -62,6 +70,11 @@ a partir do monorepo de desenvolvimento
 [`ecnmee/elo-monorepo`](https://github.com/ecnmee/elo-monorepo), onde
 acontece o desenvolvimento do core, a documentação de arquitectura
 (ADR-001/002/003), e a discussão de issues.
+
+## Progresso do desenvolvimento
+
+Estás a acompanhar? Ver [PROGRESS.pt.md](PROGRESS.pt.md) para um registo em
+linguagem simples, actualizado regularmente, do ponto em que o projecto está.
 
 ## Contribuir
 
