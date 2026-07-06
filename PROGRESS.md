@@ -3,8 +3,8 @@
 # Development Progress
 
 A running, public log of where Elo stands. Full technical detail lives in
-the [architecture documentation](https://github.com/ecnmee/elo-monorepo/tree/main/docs/adr);
-this page is the plain-language version, updated as things move forward.
+[`docs/adr/`](docs/adr); this page is the plain-language version, updated
+as things move forward.
 
 ---
 
@@ -14,9 +14,6 @@ this page is the plain-language version, updated as things move forward.
 
 - Architecture frozen across three ADRs: hierarchy and contracts, philosophy
   and boundaries, official vocabulary.
-- Both repositories live: this one (public package) and
-  [`elo-monorepo`](https://github.com/ecnmee/elo-monorepo) (development,
-  where the core is actually built).
 - Composer package configured, along with the full quality stack: PHPStan,
   Pint, Pest, and continuous integration.
 - First architecture test in place and passing, it automatically fails CI
@@ -44,6 +41,5 @@ the real documentation.
 
 ## How to follow more closely
 
-- Star or watch [`ecnmee/elo`](https://github.com/ecnmee/elo) for release-level updates.
-- Watch [`ecnmee/elo-monorepo`](https://github.com/ecnmee/elo-monorepo) for day-to-day development.
-- The [ADRs](https://github.com/ecnmee/elo-monorepo/tree/main/docs/adr) explain every architectural decision and the reasoning behind it.
+- Star or watch this repository for updates.
+- The [ADRs](docs/adr) explain every architectural decision and the reasoning behind it.

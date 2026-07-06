@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="PROGRESS.md">Follow the build</a> ·
-  <a href="https://github.com/ecnmee/elo-monorepo/tree/main/docs/adr">Read the architecture</a> ·
+  <a href="docs/adr">Read the architecture</a> ·
   <a href="#installation">Installation</a>
 </p>
 
@@ -75,7 +75,7 @@ migration, from about ten lines you actually own.
 
 Elo isn't trying to replace Laravel, or become a CMS. It's the missing
 piece between "I described my domain" and "there's a working admin panel
-for it", nothing more, nothing less. See [what Elo is, and isn't](https://github.com/ecnmee/elo-monorepo/blob/main/docs/adr/en/ADR-002-elo-philosophy.md)
+for it", nothing more, nothing less. See [what Elo is, and isn't](docs/adr/en/ADR-002-elo-philosophy.md)
 for the full boundary.
 
 ## Installation
@@ -91,18 +91,11 @@ composer require ecnmee/elo
 
 Before writing implementation code, the full architecture was worked
 through and frozen across three public ADRs, hierarchy and contracts,
-philosophy and boundaries, official vocabulary. Every core class ships with
-tests that verify the public contract, and CI fails automatically if the
-core ever ends up depending on a specific third-party module. If you want
-to see the reasoning behind every decision, not just the result, it's all
-public in [`elo-monorepo`](https://github.com/ecnmee/elo-monorepo).
-
-## Documentation
-
-This repository is the public, single-package distribution of Elo, split
-from the [`ecnmee/elo-monorepo`](https://github.com/ecnmee/elo-monorepo)
-development monorepo, where core development, architecture documentation,
-and issue discussion happen.
+philosophy and boundaries, official vocabulary, all in [`docs/adr/`](docs/adr).
+Every core class ships with tests that verify the public contract, and CI
+fails automatically if the core ever ends up depending on a specific
+third-party module. If you want to see the reasoning behind every decision,
+not just the result, it's all there to read.
 
 ## Development progress
 
@@ -112,8 +105,8 @@ commit.
 
 ## Contributing
 
-Core development happens in the [monorepo](https://github.com/ecnmee/elo-monorepo).
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to report issues and request
+features.
 
 ## Code of Conduct
 

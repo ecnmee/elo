@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="PROGRESS.pt.md">Acompanha o desenvolvimento</a> ·
-  <a href="https://github.com/ecnmee/elo-monorepo/tree/main/docs/adr">Lê a arquitectura</a> ·
+  <a href="docs/adr">Lê a arquitectura</a> ·
   <a href="#instalação">Instalação</a>
 </p>
 
@@ -75,7 +75,7 @@ gerada automaticamente, a partir de umas dez linhas que são realmente tuas.
 
 O Elo não tenta substituir o Laravel, nem tornar-se um CMS. É a peça que
 falta entre "descrevi o meu domínio" e "existe um painel de administração a
-funcionar para ele", nem mais, nem menos. Ver [o que o Elo é, e o que não é](https://github.com/ecnmee/elo-monorepo/blob/main/docs/adr/pt/ADR-002-elo-filosofia.md)
+funcionar para ele", nem mais, nem menos. Ver [o que o Elo é, e o que não é](docs/adr/pt/ADR-002-elo-filosofia.md)
 para o limite completo.
 
 ## Instalação
@@ -91,19 +91,11 @@ composer require ecnmee/elo
 
 Antes de escrever qualquer código de implementação, a arquitectura completa
 foi trabalhada e congelada em três ADRs públicas, hierarquia e contratos,
-filosofia e limites, vocabulário oficial. Cada classe do core vem com testes
-que validam o contrato público, e o CI falha automaticamente se o core
-alguma vez passar a depender de um módulo de terceiros específico. Se
-quiseres ver o raciocínio por trás de cada decisão, não só o resultado,
-está tudo público no [`elo-monorepo`](https://github.com/ecnmee/elo-monorepo).
-
-## Documentação
-
-Este repositório é a distribuição pública, de pacote único, do Elo, gerada
-a partir do monorepo de desenvolvimento
-[`ecnmee/elo-monorepo`](https://github.com/ecnmee/elo-monorepo), onde
-acontece o desenvolvimento do core, a documentação de arquitectura, e a
-discussão de issues.
+filosofia e limites, vocabulário oficial, todas em [`docs/adr/`](docs/adr).
+Cada classe do core vem com testes que validam o contrato público, e o CI
+falha automaticamente se o core alguma vez passar a depender de um módulo
+de terceiros específico. Se quiseres ver o raciocínio por trás de cada
+decisão, não só o resultado, está tudo ali para leres.
 
 ## Progresso do desenvolvimento
 
@@ -113,8 +105,8 @@ está, sem precisares de ler cada commit.
 
 ## Contribuir
 
-O desenvolvimento do core acontece no [monorepo](https://github.com/ecnmee/elo-monorepo).
-Ver [CONTRIBUTING.md](CONTRIBUTING.pt.md) para detalhes.
+Ver [CONTRIBUTING.md](CONTRIBUTING.pt.md) para saber como reportar problemas
+e pedir funcionalidades.
 
 ## Código de conduta
 

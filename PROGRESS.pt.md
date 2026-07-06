@@ -3,9 +3,8 @@
 # Progresso do Desenvolvimento
 
 Um registo público e contínuo do ponto em que o Elo está. O detalhe técnico
-completo vive na [documentação de arquitectura](https://github.com/ecnmee/elo-monorepo/tree/main/docs/adr);
-esta página é a versão em linguagem simples, actualizada à medida que o
-projecto avança.
+completo vive em [`docs/adr/`](docs/adr); esta página é a versão em
+linguagem simples, actualizada à medida que o projecto avança.
 
 ---
 
@@ -15,9 +14,6 @@ projecto avança.
 
 - Arquitectura congelada em três ADRs: hierarquia e contratos, filosofia e
   limites, vocabulário oficial.
-- Os dois repositórios já existem: este (pacote público) e o
-  [`elo-monorepo`](https://github.com/ecnmee/elo-monorepo) (desenvolvimento,
-  onde o core é de facto construído).
 - Pacote Composer configurado, com toda a stack de qualidade: PHPStan,
   Pint, Pest, e integração contínua.
 - Primeiro teste de arquitectura em vigor e a passar, falha automaticamente
@@ -46,6 +42,5 @@ coisas estão, é um atalho, não um substituto da documentação real.
 
 ## Como acompanhar mais de perto
 
-- Star ou watch em [`ecnmee/elo`](https://github.com/ecnmee/elo) para actualizações ao nível de releases.
-- Watch em [`ecnmee/elo-monorepo`](https://github.com/ecnmee/elo-monorepo) para o desenvolvimento dia a dia.
-- As [ADRs](https://github.com/ecnmee/elo-monorepo/tree/main/docs/adr) explicam cada decisão de arquitectura e o raciocínio por trás dela.
+- Star ou watch neste repositório para actualizações.
+- As [ADRs](docs/adr) explicam cada decisão de arquitectura e o raciocínio por trás dela.
