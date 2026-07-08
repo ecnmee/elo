@@ -32,6 +32,27 @@ linguagem simples, actualizada à medida que o projecto avança.
 - O primeiro Field real (`Text`), de ponta a ponta.
 - O `PostResource` construído de ponta a ponta sobre os sete contratos.
 
+**Adiado, registado, não implementado:**
+
+- Os indicadores de contexto do `Field` (`hiddenOn`/`readonlyOn`/`requiredOn`)
+  como uma estrutura única em vez de um array por comportamento, revisitar
+  se aparecer mesmo um quarto comportamento (ex: `disabledOn`).
+- Contextos como enum do PHP, revisitar só se um typo real causar um bug real.
+- Esconder `Closure` atrás de um conceito `Lifecycle`.
+- Um tipo `Record`/`DataRecord` em vez de arrays crus vindos do `Repository`.
+- Tipos mais fortes no PHPDoc de `Module::commands()`/`widgets()`/`listeners()`
+  (ex: `list<class-string>`), assim que uma primeira implementação real
+  revelar qual forma cada método realmente assenta (`listeners()` em
+  particular provavelmente precisa de um mapa evento-para-listeners, não
+  uma lista simples).
+- Direcção de `ResourceMetadata::defaultSort()` como constante validada
+  (`ASC`/`DESC`) em vez de qualquer string.
+- Vigiar o rácio contrato/implementação: cerca de 20-30% contratos e
+  infra-estrutura vs. 70-80% implementações reais é uma faixa saudável
+  enquanto o core ainda é jovem. Se interfaces, classes abstractas e
+  registries continuarem a crescer sem implementações reais a usá-los, é
+  sinal de que a arquitectura começou a crescer por antecipação.
+
 ## Porque existe esta página
 
 O Elo está a ser construído em aberto, e a sua arquitectura foi moldada

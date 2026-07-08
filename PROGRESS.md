@@ -31,6 +31,26 @@ as things move forward.
 - The first real Field (`Text`), end to end.
 - `PostResource` built end to end on top of the seven contracts.
 
+**Deferred, tracked, not implemented:**
+
+- `Field` context flags (`hiddenOn`/`readonlyOn`/`requiredOn`) as a unified
+  structure instead of one array per behavior, revisit if a fourth behavior
+  (e.g. `disabledOn`) actually shows up.
+- Context strings as a PHP enum, revisit only if a real typo causes a real bug.
+- Hiding `Closure` behind a `Lifecycle` concept.
+- A `Record`/`DataRecord` type instead of raw arrays from `Repository`.
+- Stronger PHPDoc types on `Module::commands()`/`widgets()`/`listeners()`
+  (e.g. `list<class-string>`), once a first real implementation reveals
+  which methods actually settle into that shape (`listeners()` in
+  particular likely needs an event-to-listeners map, not a flat list).
+- `ResourceMetadata::defaultSort()` direction as a validated constant
+  (`ASC`/`DESC`) instead of any string.
+- Watching the contract-to-implementation ratio: roughly 20-30% contracts
+  and infrastructure vs. 70-80% real implementations is a healthy range
+  while the core is still young. If interfaces, abstract classes, and
+  registries keep growing without real implementations using them, that's
+  a sign the architecture has started growing by anticipation.
+
 ## Why this page exists
 
 Elo is being built in the open, and its architecture was shaped through an
