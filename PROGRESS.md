@@ -36,9 +36,20 @@ as things move forward.
 
 **Next up:**
 
-- The first real Field (`Text`), end to end, the first component built on
-  top of the tokens above.
-- `PostResource` built end to end on top of the seven contracts.
+- `PostResource` built end to end on top of the seven contracts, including
+  the first version of `ResourceForm`, the Livewire component that will
+  actually render `Text` (and every Field after it) inside a real form.
+
+**Just shipped: the first real Field (`Text`)**
+
+- Renders as a plain Blade view, not its own nested Livewire component,
+  resolved by convention from the class name (`Text` → `elo::fields.text`),
+  so a simple Field never has to declare it.
+- Established the view contract every Field's Blade view will follow:
+  `$field`, `$value`, `$context`, `$error`.
+- The field-level CSS classes (`elo-field`, `elo-field__label`,
+  `elo-field__input`, `elo-field__error`) now exist in `elo.css`, built
+  directly on the tokens from the previous step.
 
 **Deferred, tracked, not implemented:**
 

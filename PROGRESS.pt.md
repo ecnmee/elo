@@ -37,9 +37,22 @@ linguagem simples, actualizada à medida que o projecto avança.
 
 **A seguir:**
 
-- O primeiro Field real (`Text`), de ponta a ponta, o primeiro componente
-  construído sobre os tokens acima.
-- O `PostResource` construído de ponta a ponta sobre os sete contratos.
+- O `PostResource` construído de ponta a ponta sobre os sete contratos,
+  incluindo a primeira versão do `ResourceForm`, o componente Livewire que
+  vai de facto renderizar o `Text` (e cada Field depois dele) dentro de um
+  formulário real.
+
+**Acabado de sair: o primeiro Field real (`Text`)**
+
+- Renderiza-se como uma view Blade simples, não como o seu próprio
+  componente Livewire aninhado, resolvida por convenção a partir do nome
+  da classe (`Text` → `elo::fields.text`), para um Field simples nunca
+  precisar de a declarar.
+- Estabeleceu o contrato de variáveis que a view Blade de cada Field vai
+  seguir: `$field`, `$value`, `$context`, `$error`.
+- As classes CSS ao nível de campo (`elo-field`, `elo-field__label`,
+  `elo-field__input`, `elo-field__error`) já existem no `elo.css`,
+  construídas directamente sobre os tokens do passo anterior.
 
 **Adiado, registado, não implementado:**
 
