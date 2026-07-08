@@ -8,7 +8,7 @@ linguagem simples, actualizada à medida que o projecto avança.
 
 ---
 
-## Estado actual: sete contratos implementados
+## Estado actual: design system
 
 **O que já está feito:**
 
@@ -25,11 +25,20 @@ linguagem simples, actualizada à medida que o projecto avança.
   imutabilidade do Blueprint, a regra de identidade separada de persistência
   do Field, os hooks opcionais do Module, e os cinco tipos de Layout da v1
   (Section, Tabs, Grid, Card, Column).
+- Tokens de design (`tokens.css`) e uma folha de estilo base mínima
+  (`elo.css`), CSS puro, sem Tailwind, sem UI kit de terceiros, delimitado
+  sob `.elo-panel` para o pacote nunca vazar estilos para o site anfitrião.
+  A paleta deriva do próprio logótipo do Elo (neutros tingidos de navy, o
+  mesmo azul de destaque) em vez de um genérico de painel administrativo, e
+  o par tipográfico (IBM Plex Sans/Mono) foi escolhido para uma ferramenta
+  técnica e densa em dados, não para uma página de marketing. O dark mode é
+  suportado automaticamente e por override manual, e a preferência de
+  movimento reduzido é respeitada.
 
 **A seguir:**
 
-- O design system (tokens de CSS base do painel).
-- O primeiro Field real (`Text`), de ponta a ponta.
+- O primeiro Field real (`Text`), de ponta a ponta, o primeiro componente
+  construído sobre os tokens acima.
 - O `PostResource` construído de ponta a ponta sobre os sete contratos.
 
 **Adiado, registado, não implementado:**

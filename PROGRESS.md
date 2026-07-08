@@ -8,7 +8,7 @@ as things move forward.
 
 ---
 
-## Current stage: seven contracts implemented
+## Current stage: design system
 
 **What's done:**
 
@@ -24,11 +24,20 @@ as things move forward.
   with unit tests covering their core behavior: Blueprint's immutability,
   Field's identity-separate-from-persistence rule, Module's optional hooks,
   and the five v1 Layout types (Section, Tabs, Grid, Card, Column).
+- Design tokens (`tokens.css`) and a minimal base stylesheet (`elo.css`),
+  plain CSS custom properties, no Tailwind, no third-party UI kit, scoped
+  under `.elo-panel` so the package never leaks styles into the host site.
+  The palette is derived from the Elo logo itself (navy-tinted neutrals,
+  the same accent blue) rather than a generic admin-panel default, and the
+  type pairing (IBM Plex Sans/Mono) was chosen for a technical, data-dense
+  tool rather than a marketing page. Dark mode is supported both
+  automatically and via a manual override, and reduced-motion preferences
+  are respected.
 
 **Next up:**
 
-- The design system (base CSS tokens for the panel).
-- The first real Field (`Text`), end to end.
+- The first real Field (`Text`), end to end, the first component built on
+  top of the tokens above.
 - `PostResource` built end to end on top of the seven contracts.
 
 **Deferred, tracked, not implemented:**
