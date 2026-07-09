@@ -37,10 +37,21 @@ linguagem simples, actualizada à medida que o projecto avança.
 
 **A seguir:**
 
-- O `PostResource` construído de ponta a ponta sobre os sete contratos,
-  incluindo a primeira versão do `ResourceForm`, o componente Livewire que
-  vai de facto renderizar o `Text` (e cada Field depois dele) dentro de um
-  formulário real.
+- O componente Livewire `ResourceForm` (o primeiro a sério), o próprio
+  `PostResource`, rotas, e o helper `elo()` do front-end — o resto do
+  "PostResource de ponta a ponta".
+
+**Acabado de sair: `EloquentRepository`, e uma emenda ao contrato**
+
+- `EloquentRepository` e `EloquentRepositoryQuery` implementados, o único
+  `Repository` na v1, testado contra um Model Eloquent real numa base de
+  dados SQLite em memória. `RepositoryQuery` fica deliberadamente mínimo:
+  `where()`, `orderBy()`, `get()`, `first()`, nada especulativo.
+- **Emenda ao contrato:** `Resource` ganhou `repository(): Repository`. A
+  ADR-001 sempre comprometeu o Resource a depender de Repository, isto só
+  completa essa dependência agora que existe uma implementação real para
+  devolver. Sem inferência por convenção do Model, cada Resource declara o
+  seu repositório explicitamente.
 
 **Acabado de sair: o primeiro Field real (`Text`)**
 

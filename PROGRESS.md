@@ -36,9 +36,21 @@ as things move forward.
 
 **Next up:**
 
-- `PostResource` built end to end on top of the seven contracts, including
-  the first version of `ResourceForm`, the Livewire component that will
-  actually render `Text` (and every Field after it) inside a real form.
+- The `ResourceForm` Livewire component (the first real one), `PostResource`
+  itself, routing, and the `elo()` front-end helper, the rest of "PostResource
+  end to end."
+
+**Just shipped: `EloquentRepository`, and a contract amendment**
+
+- `EloquentRepository` and `EloquentRepositoryQuery` implemented, the only
+  `Repository` in v1, tested against a real Eloquent model on an in-memory
+  SQLite database. `RepositoryQuery` stays deliberately minimal:
+  `where()`, `orderBy()`, `get()`, `first()`, nothing speculative.
+- **Contract amendment:** `Resource` gained `repository(): Repository`.
+  ADR-001 always committed Resource to depending on Repository, this just
+  completes that dependency now that a real implementation exists to
+  return. No convention-based inference of the model class, every Resource
+  declares its repository explicitly.
 
 **Just shipped: the first real Field (`Text`)**
 
