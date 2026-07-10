@@ -97,6 +97,12 @@ falha automaticamente se o core alguma vez passar a depender de um módulo
 de terceiros específico. Se quiseres ver o raciocínio por trás de cada
 decisão, não só o resultado, está tudo ali para leres.
 
+## Guia do utilizador
+
+Documentação do que existe de facto hoje, a crescer a cada passo real de
+implementação, sem tutoriais para funcionalidades que ainda não existem:
+ver [`docs/guide/`](docs/guide/pt/introducao.md).
+
 ## Progresso do desenvolvimento
 
 Estás a acompanhar? Ver [PROGRESS.pt.md](PROGRESS.pt.md) para um registo em

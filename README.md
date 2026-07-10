@@ -97,6 +97,12 @@ fails automatically if the core ever ends up depending on a specific
 third-party module. If you want to see the reasoning behind every decision,
 not just the result, it's all there to read.
 
+## User guide
+
+Documentation of what actually exists today, growing with every real step
+of implementation, no tutorials for features that don't exist yet: see
+[`docs/guide/`](docs/guide/en/introduction.md).
+
 ## Development progress
 
 Following along? See [PROGRESS.md](PROGRESS.md) for a plain-language,
