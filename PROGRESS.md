@@ -36,12 +36,18 @@ as things move forward.
   the Resource's Repository. Tested end to end against a real Eloquent
   model on an in-memory database, creating, validating, editing, and the
   `elo-resource-saved` event.
+- Routing: a generic `ResourceController` (create/edit, never one
+  controller per Resource) plus routes generated automatically from a
+  slug-to-Resource map in a publishable `config/elo.php`. Full Module
+  discovery isn't wired in yet, this is deliberately the minimal real
+  version, a hand-maintained map, until a real case asks for more.
+  `php artisan vendor:publish --tag=elo-assets` publishes `elo.css` where
+  routes can actually load it from.
 
 **Next up:**
 
 - `PostResource` as a real, shippable example (not just a test fixture),
-  routing, and the `elo()` front-end helper, the rest of "PostResource end
-  to end."
+  and the `elo()` front-end helper, to close "PostResource end to end."
 
 **Just shipped: `EloquentRepository`, and a contract amendment**
 

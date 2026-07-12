@@ -65,13 +65,36 @@ through its own view in the order the Layout declares (or in the order
 they were defined, if there's no Layout), validates using each Field's
 `isRequiredOn()`, and saves through the Resource's Repository on submit.
 
+## Making it reachable by URL
+
+Register the Resource in `config/elo.php` (publish it first with
+`php artisan vendor:publish --tag=elo-config`):
+
+```php
+'resources' => [
+    'posts' => \App\Elo\Resources\PostResource::class,
+],
+```
+
+That alone generates two routes: `/elo/posts/create` and
+`/elo/posts/{record}/edit`, both rendering the same page you'd get from
+dropping `<livewire:elo-resource-form>` into a view yourself. Publish the
+stylesheet too, or the page will render unstyled:
+
+```bash
+php artisan vendor:publish --tag=elo-assets
+```
+
+There's no listing screen linking to these yet, visit the URLs directly
+for now.
+
 ## What this doesn't do yet
 
 - No listing screen, `ResourceTable` isn't built.
-- No routing, `<livewire:elo-resource-form>` has to be dropped into a view
-  you already have.
 - No migration generation, the table (`posts`, in the example above) still
   needs a hand-written migration.
+- No authentication or authorization on the routes, add your own
+  middleware via `config('elo.middleware')` if the panel needs protecting.
 - Only `Text` fields exist, so this only really works well for simple text
   data today.
 

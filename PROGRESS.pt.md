@@ -38,12 +38,20 @@ linguagem simples, actualizada à medida que o projecto avança.
   Resource. Testado de ponta a ponta contra um Model Eloquent real numa
   base de dados em memória: criação, validação, edição, e o evento
   `elo-resource-saved`.
+- Rotas: um `ResourceController` genérico (criar/editar, nunca um
+  controller por Resource), com rotas geradas automaticamente a partir de
+  um mapeamento slug-para-Resource num `config/elo.php` publicável. A
+  descoberta completa de Modules ainda não está ligada, esta é
+  deliberadamente a versão mínima real, um mapa mantido à mão, até
+  aparecer um caso real que peça mais. `php artisan vendor:publish
+  --tag=elo-assets` publica o `elo.css` para onde as rotas conseguem de
+  facto carregá-lo.
 
 **A seguir:**
 
 - O `PostResource` como exemplo real e distribuível (não só um fixture de
-  teste), rotas, e o helper `elo()` do front-end, o resto do "PostResource
-  de ponta a ponta".
+  teste), e o helper `elo()` do front-end, para fechar o "PostResource de
+  ponta a ponta".
 
 **Acabado de sair: `EloquentRepository`, e uma emenda ao contrato**
 

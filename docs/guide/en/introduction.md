@@ -21,10 +21,9 @@ built yet, check PROGRESS.md for what's next.
 ## What doesn't exist yet
 
 - A listing screen, `ResourceTable` hasn't been built.
-- Routing, so there's no `/admin` (or similar) URL to point at, you drop
-  `<livewire:elo-resource-form>` into a view you already have.
 - `elo:sync`, so migrations still need to be written by hand.
 - Any Field beyond `Text` (`RichText`, `Image`, and the rest are next).
+- Authentication/authorization on Elo's routes, bring your own middleware.
 
 If you're evaluating Elo for a real project today, it's not ready for
 that yet, this guide exists for people following the build, testing pieces

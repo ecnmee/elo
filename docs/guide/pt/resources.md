@@ -67,13 +67,37 @@ que foram definidos, se não houver Layout), valida usando o
 `isRequiredOn()` de cada Field, e grava através do Repository do Resource
 ao submeter.
 
+## Tornar acessível por URL
+
+Regista o Resource em `config/elo.php` (publica-o primeiro com
+`php artisan vendor:publish --tag=elo-config`):
+
+```php
+'resources' => [
+    'posts' => \App\Elo\Resources\PostResource::class,
+],
+```
+
+Só isto gera duas rotas: `/elo/posts/create` e `/elo/posts/{record}/edit`,
+ambas a renderizar a mesma página que obterias colocando o
+`<livewire:elo-resource-form>` numa view tu próprio. Publica também a
+folha de estilo, ou a página fica sem estilo:
+
+```bash
+php artisan vendor:publish --tag=elo-assets
+```
+
+Ainda não há nenhum ecrã de listagem a ligar para estas rotas, visita os
+URLs directamente por agora.
+
 ## O que isto ainda não faz
 
 - Sem ecrã de listagem, o `ResourceTable` ainda não foi construído.
-- Sem rotas, o `<livewire:elo-resource-form>` tem de ser colocado numa
-  view que já tenhas.
 - Sem geração de migration, a tabela (`posts`, no exemplo acima) ainda
   precisa de uma migration escrita à mão.
+- Sem autenticação ou autorização nas rotas, adiciona o teu próprio
+  middleware via `config('elo.middleware')` se o painel precisar de
+  protecção.
 - Só existem Fields `Text`, por isso hoje só funciona bem para dados de
   texto simples.
 

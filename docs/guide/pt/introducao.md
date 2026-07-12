@@ -23,11 +23,11 @@ seguir.
 ## O que ainda não existe
 
 - Um ecrã de listagem, o `ResourceTable` ainda não foi construído.
-- Rotas, por isso não há nenhum URL tipo `/admin` para visitar, colocas o
-  `<livewire:elo-resource-form>` numa view que já tenhas.
 - `elo:sync`, por isso as migrations ainda têm de ser escritas à mão.
 - Qualquer Field além do `Text` (`RichText`, `Image`, e o resto vêm a
   seguir).
+- Autenticação/autorização nas rotas do Elo, traz o teu próprio
+  middleware.
 
 Se estás a avaliar o Elo para um projecto real hoje, ainda não está
 pronto para isso, este guia existe para quem está a acompanhar o
