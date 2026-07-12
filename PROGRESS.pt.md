@@ -8,7 +8,7 @@ linguagem simples, actualizada à medida que o projecto avança.
 
 ---
 
-## Estado actual: design system
+## Estado actual: o primeiro componente Livewire real
 
 **O que já está feito:**
 
@@ -28,18 +28,22 @@ linguagem simples, actualizada à medida que o projecto avança.
 - Tokens de design (`tokens.css`) e uma folha de estilo base mínima
   (`elo.css`), CSS puro, sem Tailwind, sem UI kit de terceiros, delimitado
   sob `.elo-panel` para o pacote nunca vazar estilos para o site anfitrião.
-  A paleta deriva do próprio logótipo do Elo (neutros tingidos de navy, o
-  mesmo azul de destaque) em vez de um genérico de painel administrativo, e
-  o par tipográfico (IBM Plex Sans/Mono) foi escolhido para uma ferramenta
-  técnica e densa em dados, não para uma página de marketing. O dark mode é
-  suportado automaticamente e por override manual, e a preferência de
-  movimento reduzido é respeitada.
+- `EloquentRepository`, o único `Repository` na v1, e a conclusão do
+  contrato `Resource::repository()`.
+- `ResourceForm`, o primeiro componente Livewire real: renderiza o
+  Blueprint de um Resource como formulário de criação/edição, resolve a
+  ordem dos campos a partir do Layout (ou cai para a ordem de declaração
+  quando não há nenhum), deriva a validação directamente do
+  `isRequiredOn()` de cada Field, e grava através do Repository do
+  Resource. Testado de ponta a ponta contra um Model Eloquent real numa
+  base de dados em memória: criação, validação, edição, e o evento
+  `elo-resource-saved`.
 
 **A seguir:**
 
-- O componente Livewire `ResourceForm` (o primeiro a sério), o próprio
-  `PostResource`, rotas, e o helper `elo()` do front-end — o resto do
-  "PostResource de ponta a ponta".
+- O `PostResource` como exemplo real e distribuível (não só um fixture de
+  teste), rotas, e o helper `elo()` do front-end, o resto do "PostResource
+  de ponta a ponta".
 
 **Acabado de sair: `EloquentRepository`, e uma emenda ao contrato**
 

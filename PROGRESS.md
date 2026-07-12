@@ -8,7 +8,7 @@ as things move forward.
 
 ---
 
-## Current stage: design system
+## Current stage: the first real Livewire component
 
 **What's done:**
 
@@ -27,18 +27,21 @@ as things move forward.
 - Design tokens (`tokens.css`) and a minimal base stylesheet (`elo.css`),
   plain CSS custom properties, no Tailwind, no third-party UI kit, scoped
   under `.elo-panel` so the package never leaks styles into the host site.
-  The palette is derived from the Elo logo itself (navy-tinted neutrals,
-  the same accent blue) rather than a generic admin-panel default, and the
-  type pairing (IBM Plex Sans/Mono) was chosen for a technical, data-dense
-  tool rather than a marketing page. Dark mode is supported both
-  automatically and via a manual override, and reduced-motion preferences
-  are respected.
+- `EloquentRepository`, the only `Repository` in v1, and the
+  `Resource::repository()` contract completion.
+- `ResourceForm`, the first real Livewire component: renders a Resource's
+  Blueprint as a create/edit form, resolves field order from the Layout
+  (or falls back to declaration order when there isn't one), derives
+  validation directly from each Field's `isRequiredOn()`, and saves through
+  the Resource's Repository. Tested end to end against a real Eloquent
+  model on an in-memory database, creating, validating, editing, and the
+  `elo-resource-saved` event.
 
 **Next up:**
 
-- The `ResourceForm` Livewire component (the first real one), `PostResource`
-  itself, routing, and the `elo()` front-end helper, the rest of "PostResource
-  end to end."
+- `PostResource` as a real, shippable example (not just a test fixture),
+  routing, and the `elo()` front-end helper, the rest of "PostResource end
+  to end."
 
 **Just shipped: `EloquentRepository`, and a contract amendment**
 

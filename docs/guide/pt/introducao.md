@@ -13,17 +13,18 @@ seguir.
 
 - Os sete contratos públicos: `Module`, `Resource`, `Blueprint`, `Field`,
   `Action`, `Layout`, `Repository`.
-- Um Field real: [`Text`](fields.md).
+- Um Field real: [`Text`](campos.md).
 - Uma implementação real de Repository: `EloquentRepository`.
 - Os tokens de design (`tokens.css`) e a folha de estilo base do painel
   (`elo.css`).
+- `ResourceForm`, um formulário Livewire de criação/edição a funcionar
+  para qualquer Resource que definires, ver [Resources e formulários](resources.md).
 
 ## O que ainda não existe
 
-- Um painel de administração a funcionar que possas visitar num browser.
-  O `ResourceForm` (o componente Livewire que vai de facto renderizar um
-  formulário) ainda não foi construído.
-- Rotas, por isso não há nenhum URL tipo `/admin` para visitar.
+- Um ecrã de listagem, o `ResourceTable` ainda não foi construído.
+- Rotas, por isso não há nenhum URL tipo `/admin` para visitar, colocas o
+  `<livewire:elo-resource-form>` numa view que já tenhas.
 - `elo:sync`, por isso as migrations ainda têm de ser escritas à mão.
 - Qualquer Field além do `Text` (`RichText`, `Image`, e o resto vêm a
   seguir).
@@ -37,5 +38,8 @@ desenvolvimento, a testar peças isoladamente, ou a contribuir.
 - [Conceitos](conceitos.md), as sete ideias sobre as quais o Elo é
   construído, explicadas em linguagem simples.
 - [Fields](campos.md), como definir e usar o único Field que existe.
+- [Resources e formulários](resources.md), o primeiro fluxo real de ponta
+  a ponta, define um Resource, obtém um formulário a funcionar a partir
+  dele.
 - As [ADRs](../adr), para o raciocínio por trás de cada decisão de
   desenho, não só o que faz.

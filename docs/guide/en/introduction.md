@@ -15,12 +15,14 @@ built yet, check PROGRESS.md for what's next.
 - One real Field type: [`Text`](fields.md).
 - One real Repository implementation: `EloquentRepository`.
 - The design tokens (`tokens.css`) and base panel stylesheet (`elo.css`).
+- `ResourceForm`, a working Livewire create/edit form for any Resource you
+  define, see [Resources and forms](resources.md).
 
 ## What doesn't exist yet
 
-- A working admin panel you can visit in a browser. `ResourceForm` (the
-  Livewire component that will actually render a form) hasn't been built.
-- Routing, so there's no `/admin` (or similar) URL to point at.
+- A listing screen, `ResourceTable` hasn't been built.
+- Routing, so there's no `/admin` (or similar) URL to point at, you drop
+  `<livewire:elo-resource-form>` into a view you already have.
 - `elo:sync`, so migrations still need to be written by hand.
 - Any Field beyond `Text` (`RichText`, `Image`, and the rest are next).
 
@@ -33,5 +35,7 @@ in isolation, or contributing.
 - [Concepts](concepts.md), the seven ideas Elo is built from, explained
   plainly.
 - [Fields](fields.md), how to define and use the one Field that exists.
+- [Resources and forms](resources.md), the first real end-to-end flow,
+  define a Resource, get a working form out of it.
 - The [architecture decision records](../adr), for the reasoning behind
   every design choice, not just what it does.
