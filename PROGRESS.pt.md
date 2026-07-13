@@ -8,7 +8,7 @@ linguagem simples, actualizada à medida que o projecto avança.
 
 ---
 
-## Estado actual: o primeiro componente Livewire real
+## Estado actual: o "PostResource de ponta a ponta" está fechado
 
 **O que já está feito:**
 
@@ -46,12 +46,18 @@ linguagem simples, actualizada à medida que o projecto avança.
   aparecer um caso real que peça mais. `php artisan vendor:publish
   --tag=elo-assets` publica o `elo.css` para onde as rotas conseguem de
   facto carregá-lo.
+- O helper `elo()` do front-end: `elo()->resource('posts')->where(...)->get()`,
+  resolve um Resource registado pelo slug e devolve o seu `RepositoryQuery`
+  directamente. Só `resource()` existe, `settings()`, `menu()`, e `form()`
+  do esboço original da ADR ainda não têm um caso real por trás.
+- Um `PostResource` completo e realista em `examples/`, código de
+  referência para copiar para uma aplicação real, deliberadamente não
+  distribuído como parte do pacote instalável (um Post de blog é
+  específico de domínio, o core mantém-se pequeno de propósito).
 
 **A seguir:**
 
-- O `PostResource` como exemplo real e distribuível (não só um fixture de
-  teste), e o helper `elo()` do front-end, para fechar o "PostResource de
-  ponta a ponta".
+- `elo:sync`, a gerar migrations a partir dos Fields de um Blueprint.
 
 **Acabado de sair: `EloquentRepository`, e uma emenda ao contrato**
 

@@ -90,6 +90,26 @@ php artisan vendor:publish --tag=elo-assets
 Ainda não há nenhum ecrã de listagem a ligar para estas rotas, visita os
 URLs directamente por agora.
 
+## Consumir um Resource a partir do front-end
+
+Depois de um Resource estar registado em `config/elo.php`,
+`elo()->resource($slug)` dá-te os dados directamente, sem precisares de
+nenhum controller teu:
+
+```php
+elo()->resource('posts')->where('status', 'published')->orderBy('title')->get();
+```
+
+Devolve o mesmo `RepositoryQuery` que obterias de
+`$resource->repository()->query()`, por isso `where()`, `orderBy()`,
+`get()`, e `first()` funcionam exactamente como descrito acima.
+
+## Um exemplo completo
+
+[`examples/PostResource.php`](https://github.com/ecnmee/elo/blob/main/examples/PostResource.php)
+neste repositório tem um Resource mais completo e realista, mais campos,
+um Layout com várias secções, pronto a copiar para a tua própria aplicação.
+
 ## O que isto ainda não faz
 
 - Sem ecrã de listagem, o `ResourceTable` ainda não foi construído.

@@ -8,7 +8,7 @@ as things move forward.
 
 ---
 
-## Current stage: the first real Livewire component
+## Current stage: "PostResource end to end" is closed
 
 **What's done:**
 
@@ -43,11 +43,19 @@ as things move forward.
   version, a hand-maintained map, until a real case asks for more.
   `php artisan vendor:publish --tag=elo-assets` publishes `elo.css` where
   routes can actually load it from.
+- The `elo()` front-end helper: `elo()->resource('posts')->where(...)->get()`,
+  resolving a registered Resource by slug and returning its
+  `RepositoryQuery` directly. Only `resource()` exists, `settings()`,
+  `menu()`, and `form()` from the original ADR sketch don't have a real
+  case behind them yet.
+- A complete, realistic `PostResource` in `examples/`, reference code
+  meant to be copied into a real app, deliberately not shipped as part of
+  the installable package (a blog Post is domain-specific, the core stays
+  small on purpose).
 
 **Next up:**
 
-- `PostResource` as a real, shippable example (not just a test fixture),
-  and the `elo()` front-end helper, to close "PostResource end to end."
+- `elo:sync`, generating migrations from a Blueprint's Fields.
 
 **Just shipped: `EloquentRepository`, and a contract amendment**
 
