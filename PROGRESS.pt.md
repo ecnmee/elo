@@ -85,6 +85,13 @@ linguagem simples, actualizada à medida que o projecto avança.
 
 **Adiado, registado, não implementado:**
 
+- `elo()->resource($slug)` devolver uma fachada estilo `ResourceHandle`
+  (query, table, form, repository, metadata, tudo a partir de uma só
+  chamada) em vez do `RepositoryQuery` que devolve hoje. Nenhum caso real
+  ainda precisa de mais do que a query.
+- `elo()->resource()` aceitar uma `class-string` ou um Model directamente,
+  não só um slug de config.
+
 - Os indicadores de contexto do `Field` (`hiddenOn`/`readonlyOn`/`requiredOn`)
   como uma estrutura única em vez de um array por comportamento, revisitar
   se aparecer mesmo um quarto comportamento (ex: `disabledOn`).

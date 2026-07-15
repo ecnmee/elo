@@ -82,6 +82,13 @@ as things move forward.
 
 **Deferred, tracked, not implemented:**
 
+- `elo()->resource($slug)` returning a `ResourceHandle`-style facade
+  (query, table, form, repository, metadata all from one call) instead of
+  the `RepositoryQuery` it returns today. No real caller needs more than
+  the query yet.
+- `elo()->resource()` accepting a `class-string` or a Model class directly,
+  not just a config slug.
+
 - `Field` context flags (`hiddenOn`/`readonlyOn`/`requiredOn`) as a unified
   structure instead of one array per behavior, revisit if a fourth behavior
   (e.g. `disabledOn`) actually shows up.
