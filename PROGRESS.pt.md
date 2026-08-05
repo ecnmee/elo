@@ -61,13 +61,47 @@ linguagem simples, actualizada à medida que o projecto avança.
   construção, uma coluna existente nunca é alterada nem removida, por
   isso uma coluna acrescentada à mão fora do Elo sobrevive sempre a um
   sync.
+- `elo:sync`, o comando artisan em si. Lê cada Resource em
+  `config('elo.resources')`, compara os seus Fields contra a tabela do
+  seu Repository, e escreve uma única migration com o que faltar em todos
+  eles, nada de todo quando já está tudo em sincronia. Fecha uma emenda
+  ao contrato pelo caminho, `Repository::table()`, o mesmo tipo de
+  conclusão a posteriori que `Resource::repository()` foi, o contrato
+  ficou em silêncio sobre isto até uma implementação real precisar de
+  saber.
 
 **A seguir:**
 
-- O comando artisan `elo:sync` em si, a ligar `SchemaSnapshot`,
-  `SchemaDiff`, e `MigrationWriter` contra o Repository de cada Resource
-  registado. Assim que isto ficar pronto, o `elo:sync` deixa de ser peças
-  testadas isoladamente e passa a ser o comando que de facto se corre.
+Em aberto. O motor e o comando do `elo:sync` fecham essa linha de
+trabalho de ponta a ponta. O que vem a seguir ainda não está decidido;
+candidatos prováveis são ligar `Action` a algo executável, descoberta
+real de `Module` em vez do mapa de slugs mantido à mão, ou preencher
+`settings()`, `menu()`, `form()` no helper `elo()`, nenhum deles tem um
+caso real por trás ainda.
+
+**Acabado de sair: o comando `elo:sync`**
+
+- O `SyncCommand` em si: percorre cada Resource em
+  `config('elo.resources')`, resolve a sua tabela via
+  `Repository::table()`, os seus Fields via `Blueprint::getFields()`, e
+  entrega ambos ao `SchemaDiff`. Cada Operation encontrada em cada
+  Resource vai para uma única migration via `MigrationWriter`, não um
+  ficheiro por Resource.
+- Nada registado, ou nada fora de sincronia, e não escreve ficheiro
+  nenhum, só o diz. Herda a garantia aditiva directamente do
+  `SchemaDiff`, não há verificação extra no comando em si, não há nada
+  para verificar, o comando não consegue produzir um drop ou um alter
+  porque aquilo que chama também não consegue.
+- `Repository::table()`, uma emenda ao contrato: o comando de sync
+  precisava de saber a que tabela pertencem os Fields de um Resource, e o
+  `Repository` é a única coisa que sabe como um Resource é persistido de
+  facto. A mesma forma que `Resource::repository()` foi antes, completa
+  uma dependência que o contrato já implicava, não introduz um conceito
+  novo.
+- Testado de ponta a ponta: a migration gerada é de facto requerida e
+  corrida contra SQLite, tanto para uma tabela nova como para uma coluna
+  acrescentada a uma já existente, não só verificada como texto PHP
+  gerado.
 
 **Acabado de sair: o motor do `elo:sync`**
 

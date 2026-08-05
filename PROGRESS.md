@@ -58,13 +58,45 @@ as things move forward.
   migrations run for real against SQLite. Additive only by construction,
   an existing column is never altered or dropped, so a column added by
   hand outside Elo always survives a sync run.
+- `elo:sync`, the artisan command itself. Reads every Resource in
+  `config('elo.resources')`, diffs its Fields against its Repository's
+  table, and writes a single migration with whatever's missing across all
+  of them, nothing at all when everything's already in sync. Closes a
+  contract amendment along the way, `Repository::table()`, the same kind
+  of after-the-fact completion as `Resource::repository()` was, the
+  contract stayed silent on it until a real implementation needed to
+  know.
 
 **Next up:**
 
-- The `elo:sync` artisan command itself, wiring `SchemaSnapshot`,
-  `SchemaDiff`, and `MigrationWriter` together against every registered
-  Resource's Repository. Once this lands, `elo:sync` stops being tested
-  parts and becomes the command someone would actually run.
+Open. The sync engine and command close out the `elo:sync` line of work
+end to end. What comes next hasn't been decided; likely candidates are
+wiring `Action` into something runnable, real `Module` discovery instead
+of the hand-maintained slug map, or filling in `settings()`, `menu()`,
+`form()` on the `elo()` helper, none of them have a real case behind them
+yet.
+
+**Just shipped: the `elo:sync` command**
+
+- The `SyncCommand` itself: loops every Resource in
+  `config('elo.resources')`, resolves its table via
+  `Repository::table()`, its Fields via `Blueprint::getFields()`, and
+  hands both to `SchemaDiff`. Every Operation found across every Resource
+  goes into one migration file via `MigrationWriter`, not one file per
+  Resource.
+- Nothing registered, or nothing out of sync, and it writes no file at
+  all, it just says so. Inherits the additive guarantee straight from
+  `SchemaDiff`, there's no extra check in the command itself, there's
+  nothing to check, the command can't produce a drop or an alter because
+  the thing it calls can't either.
+- `Repository::table()`, a contract amendment: the sync command needed to
+  know which table a Resource's Fields belong to, and `Repository` is the
+  only thing that knows how a Resource is actually persisted. Same shape
+  as `Resource::repository()` earlier, completing a dependency the
+  contract already implied, not introducing a new concept.
+- Tested end to end: the generated migration is required and actually run
+  against SQLite, both for a brand-new table and for a column added to an
+  existing one, not just asserted as generated PHP text.
 
 **Just shipped: the `elo:sync` engine**
 
