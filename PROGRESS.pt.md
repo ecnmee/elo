@@ -152,6 +152,21 @@ caso real por trás ainda.
 
 **Adiado, registado, não implementado:**
 
+- `BlueprintCompiler` / `CompiledBlueprint`: um único pipeline de
+  compilação a resolver `uses()`, validar referências duplicadas e
+  pendentes, e aplicar defaults implícitos, de modo a que Form, Table,
+  `elo:sync`, API e Export lessem todos a partir de uma única estrutura
+  compilada em vez de cada um percorrer o `Blueprint` por conta própria.
+  Ainda não: os dois consumidores actuais nem sequer percorrem o mesmo
+  caminho (`ResourceForm` lê `getLayout()`, `SchemaDiff` lê
+  `getFields()`), por isso não há duplicação real a eliminar, só uma
+  previsão sobre permissions, workflows, computed fields, ou
+  comportamentos gerados por IA daqui a seis meses. Não implementar antes
+  de existir um segundo consumidor real de runtime a resolver `uses()`,
+  validar IDs e aplicar defaults de forma independente, do mesmo modo que
+  o `ResourceForm` já faz, um `ResourceTable`, por exemplo. O teste: se
+  remover este conceito hoje o projecto continua limpo, ainda não é
+  estrutural.
 - `elo()->resource($slug)` devolver uma fachada estilo `ResourceHandle`
   (query, table, form, repository, metadata, tudo a partir de uma só
   chamada) em vez do `RepositoryQuery` que devolve hoje. Nenhum caso real
