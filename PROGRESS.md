@@ -52,10 +52,42 @@ as things move forward.
   meant to be copied into a real app, deliberately not shipped as part of
   the installable package (a blog Post is domain-specific, the core stays
   small on purpose).
+- The `elo:sync` engine: `ColumnDefinition`, `Operation` and its two v1
+  implementations (`CreateTable`, `AddColumn`), `MigrationWriter`,
+  `SchemaSnapshot`, and `SchemaDiff`, all tested, including generated
+  migrations run for real against SQLite. Additive only by construction,
+  an existing column is never altered or dropped, so a column added by
+  hand outside Elo always survives a sync run.
 
 **Next up:**
 
-- `elo:sync`, generating migrations from a Blueprint's Fields.
+- The `elo:sync` artisan command itself, wiring `SchemaSnapshot`,
+  `SchemaDiff`, and `MigrationWriter` together against every registered
+  Resource's Repository. Once this lands, `elo:sync` stops being tested
+  parts and becomes the command someone would actually run.
+
+**Just shipped: the `elo:sync` engine**
+
+- `ColumnDefinition` renders a single Blueprint column call from what a
+  Field already knows: type, nullability, and default, deliberately not
+  carrying anything a Field doesn't already declare.
+- `CreateTable` and `AddColumn`, the two v1 `Operation` implementations,
+  each producing an exact inverse for `down()`.
+- `MigrationWriter` generates a real anonymous-class migration file from
+  an ordered list of Operations, `up()` in the given order, `down()` in
+  exact reverse. Tested against migrations actually run on SQLite, not
+  just the generated PHP as a string.
+- `SchemaSnapshot`, a read-only view of what already exists in the
+  database. It only answers table/column existence, never type, which
+  follows directly from ADR-001's additive-only policy: since an existing
+  column is never altered automatically, its exact type never needs to be
+  known.
+- `SchemaDiff` compares a Resource's Fields against a `SchemaSnapshot` and
+  produces the Operations needed to catch the database up: a missing
+  table becomes one `CreateTable`, a missing column on an existing table
+  becomes one `AddColumn` per field. A column that already exists, or one
+  a Field no longer declares, is left untouched, no drops, no alters, no
+  exceptions.
 
 **Just shipped: `EloquentRepository`, and a contract amendment**
 

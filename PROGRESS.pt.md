@@ -54,10 +54,43 @@ linguagem simples, actualizada à medida que o projecto avança.
   referência para copiar para uma aplicação real, deliberadamente não
   distribuído como parte do pacote instalável (um Post de blog é
   específico de domínio, o core mantém-se pequeno de propósito).
+- O motor do `elo:sync`: `ColumnDefinition`, `Operation` e as suas duas
+  implementações v1 (`CreateTable`, `AddColumn`), `MigrationWriter`,
+  `SchemaSnapshot`, e `SchemaDiff`, tudo testado, incluindo migrations
+  geradas a correr de verdade contra SQLite. Aditivo apenas por
+  construção, uma coluna existente nunca é alterada nem removida, por
+  isso uma coluna acrescentada à mão fora do Elo sobrevive sempre a um
+  sync.
 
 **A seguir:**
 
-- `elo:sync`, a gerar migrations a partir dos Fields de um Blueprint.
+- O comando artisan `elo:sync` em si, a ligar `SchemaSnapshot`,
+  `SchemaDiff`, e `MigrationWriter` contra o Repository de cada Resource
+  registado. Assim que isto ficar pronto, o `elo:sync` deixa de ser peças
+  testadas isoladamente e passa a ser o comando que de facto se corre.
+
+**Acabado de sair: o motor do `elo:sync`**
+
+- `ColumnDefinition` gera uma chamada de coluna do Blueprint a partir do
+  que um Field já sabe: tipo, nulidade e valor por omissão,
+  deliberadamente sem transportar nada que um Field ainda não declare.
+- `CreateTable` e `AddColumn`, as duas implementações v1 de `Operation`,
+  cada uma a gerar o seu inverso exacto para `down()`.
+- `MigrationWriter` gera um ficheiro de migration real, de classe anónima,
+  a partir de uma lista ordenada de Operations, `up()` pela ordem dada,
+  `down()` em ordem inversa exacta. Testado contra migrations a correr de
+  verdade em SQLite, não apenas o PHP gerado como string.
+- `SchemaSnapshot`, uma vista só de leitura do que já existe na base de
+  dados. Só responde à existência de tabela/coluna, nunca ao tipo, o que
+  decorre directamente da política aditiva da ADR-001: como uma coluna
+  existente nunca é alterada automaticamente, o seu tipo exacto nunca
+  precisa de ser conhecido.
+- `SchemaDiff` compara os Fields de um Resource contra um `SchemaSnapshot`
+  e produz as Operations necessárias para pôr a base de dados em dia: uma
+  tabela em falta vira um único `CreateTable`, uma coluna em falta numa
+  tabela existente vira um `AddColumn` por field. Uma coluna que já
+  existe, ou uma que um Field deixou de declarar, fica intocada, sem
+  drops, sem alters, sem excepções.
 
 **Acabado de sair: `EloquentRepository`, e uma emenda ao contrato**
 
