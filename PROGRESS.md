@@ -66,15 +66,56 @@ as things move forward.
   of after-the-fact completion as `Resource::repository()` was, the
   contract stayed silent on it until a real implementation needed to
   know.
+- `ResourceTable`, the second real Livewire component: lists a Resource's
+  records, sortable per column, paginated, with delete inline. Completes
+  `RepositoryQuery` with `paginate()`, the same kind of after-the-fact
+  contract completion `Repository::table()` was, `RepositoryQuery` stayed
+  a plain `where()/orderBy()/get()/first()` set until a real consumer
+  needed a page instead of the whole set. Reads `Blueprint::getFields()`
+  directly, the same as `SchemaDiff`, not `getLayout()` the way
+  `ResourceForm` does, a table's columns aren't grouped into sections the
+  way a form's inputs are, so this consumer still doesn't resolve
+  composition the way `ResourceForm` does, see the `BlueprintCompiler`
+  note below.
+- Routing gained a third fixed route, `index`, alongside `create` and
+  `edit`, resolving the same way, through the same generic controller.
 
 **Next up:**
 
-Open. The sync engine and command close out the `elo:sync` line of work
-end to end. What comes next hasn't been decided; likely candidates are
-wiring `Action` into something runnable, real `Module` discovery instead
-of the hand-maintained slug map, or filling in `settings()`, `menu()`,
-`form()` on the `elo()` helper, none of them have a real case behind them
-yet.
+Per the plan agreed while deferring `BlueprintCompiler`: `Action`
+integration next (delete, publish, duplicate, and the rest becoming real,
+runnable behavior, likely surfacing first in `ResourceTable`'s row and
+bulk actions), then `Module` discovery, replacing the hand-maintained slug
+map once real modules exist to discover.
+
+**Just shipped: `ResourceTable`**
+
+- Lists every Field a Resource's Blueprint declares, minus whichever ones
+  it hides on `Field::CONTEXT_INDEX` via `hiddenOnIndex()`, in declaration
+  order. Clicking a column header sorts by it, a second click reverses
+  direction.
+- Pagination via the new `RepositoryQuery::paginate()`, wired directly, no
+  `Livewire\WithPagination` trait: the trait expects a real
+  `LengthAwarePaginator` bound to it, `RepositoryQuery` returns a plain
+  array by design, the same shape every other query method already
+  returns, so a couple of public properties (`page`, `perPage`) and two
+  methods (`previousPage()`, `nextPage()`) do the job without pulling in
+  Livewire machinery the Repository abstraction doesn't actually need.
+- Delete is inline, on the row, calling straight through to
+  `Repository::delete()`.
+- A third route, `elo.index`, and `ResourceController::index()`,
+  registered the same way `create`/`edit` already were.
+- Tested through Livewire's testing helpers: every field rendered as a
+  column, every record as a row, the empty state, sorting and its
+  direction flip, moving between pages, and delete actually removing the
+  row and the underlying record.
+- The architectural note on `BlueprintCompiler` (see "Deferred" below)
+  said watch what happens when a second renderer exists. It exists now,
+  and the answer, at least for this one, is: no duplication. `ResourceTable`
+  reads `Blueprint::getFields()` the same flat way `SchemaDiff` already
+  does; it never touches `getLayout()`, `uses()` resolution, or reference
+  validation the way `ResourceForm` does. The trigger condition still
+  hasn't fired.
 
 **Just shipped: the `elo:sync` command**
 
@@ -150,14 +191,15 @@ yet.
   resolving `uses()`, validating duplicate and pending references, and
   applying implicit defaults, so Form, Table, `elo:sync`, API, and Export
   would all read from one compiled structure instead of each walking
-  `Blueprint` on its own. Not yet: today's two consumers don't even walk
-  the same path (`ResourceForm` reads `getLayout()`, `SchemaDiff` reads
-  `getFields()`), so there's no real duplication to eliminate, only a
-  prediction about permissions, workflows, computed fields, or
-  AI-generated behavior six months out. Do not implement before a second
-  real runtime consumer exists that's independently resolving `uses()`,
-  validating IDs, and applying defaults the way `ResourceForm` already
-  does, a `ResourceTable`, for instance. The test: if removing this
+  `Blueprint` on its own. Not yet: `ResourceTable` shipped as the second
+  real runtime consumer and, checked directly, does not resolve
+  composition the way `ResourceForm` does, it reads `getFields()` flat,
+  the same as `SchemaDiff`, no `getLayout()`, no `uses()` resolution, so
+  there's still no real duplication to eliminate, only a prediction about
+  permissions, workflows, computed fields, or AI-generated behavior six
+  months out. Do not implement before a real runtime consumer exists
+  that's independently resolving `uses()`, validating IDs, and applying
+  defaults the way `ResourceForm` already does. The test: if removing this
   concept today still leaves the project clean, it isn't structural yet.
 - `elo()->resource($slug)` returning a `ResourceHandle`-style facade
   (query, table, form, repository, metadata all from one call) instead of

@@ -69,15 +69,58 @@ linguagem simples, actualizada à medida que o projecto avança.
   conclusão a posteriori que `Resource::repository()` foi, o contrato
   ficou em silêncio sobre isto até uma implementação real precisar de
   saber.
+- `ResourceTable`, o segundo componente Livewire real: lista os registos
+  de um Resource, ordenável por coluna, paginado, com apagar em linha.
+  Completa o `RepositoryQuery` com `paginate()`, o mesmo tipo de conclusão
+  a posteriori que `Repository::table()` foi, o `RepositoryQuery` ficou
+  apenas com `where()/orderBy()/get()/first()` até um consumidor real
+  precisar de uma página em vez do conjunto todo. Lê
+  `Blueprint::getFields()` directamente, tal como o `SchemaDiff`, não
+  `getLayout()` como o `ResourceForm` faz, as colunas de uma tabela não
+  são agrupadas em secções da mesma forma que os campos de um formulário,
+  por isso este consumidor continua a não resolver composição da forma
+  que o `ResourceForm` resolve, ver a nota do `BlueprintCompiler` abaixo.
+- O routing ganhou uma terceira rota fixa, `index`, ao lado de `create` e
+  `edit`, resolvida da mesma forma, através do mesmo controller genérico.
 
 **A seguir:**
 
-Em aberto. O motor e o comando do `elo:sync` fecham essa linha de
-trabalho de ponta a ponta. O que vem a seguir ainda não está decidido;
-candidatos prováveis são ligar `Action` a algo executável, descoberta
-real de `Module` em vez do mapa de slugs mantido à mão, ou preencher
-`settings()`, `menu()`, `form()` no helper `elo()`, nenhum deles tem um
-caso real por trás ainda.
+Segundo o plano acordado ao adiar o `BlueprintCompiler`: integração de
+`Action` a seguir (delete, publish, duplicate, e o resto a tornarem-se
+comportamento real e executável, provavelmente a aparecer primeiro nas
+acções de linha e em massa do `ResourceTable`), depois descoberta de
+`Module`, a substituir o mapa de slugs mantido à mão assim que existirem
+módulos reais para descobrir.
+
+**Acabado de sair: `ResourceTable`**
+
+- Lista cada Field que o Blueprint de um Resource declara, menos os que
+  esconde em `Field::CONTEXT_INDEX` via `hiddenOnIndex()`, pela ordem de
+  declaração. Clicar num cabeçalho de coluna ordena por ela, um segundo
+  clique inverte a direcção.
+- Paginação via o novo `RepositoryQuery::paginate()`, ligado directamente,
+  sem a trait `Livewire\WithPagination`: a trait espera um
+  `LengthAwarePaginator` real ligado a ela, o `RepositoryQuery` devolve um
+  array simples por desenho, a mesma forma que todos os outros métodos de
+  query já devolvem, por isso duas propriedades públicas (`page`,
+  `perPage`) e dois métodos (`previousPage()`, `nextPage()`) resolvem sem
+  puxar a maquinaria do Livewire que a abstracção do Repository não
+  precisa de facto.
+- Apagar é em linha, na própria linha, a chamar directamente
+  `Repository::delete()`.
+- Uma terceira rota, `elo.index`, e `ResourceController::index()`,
+  registada da mesma forma que `create`/`edit` já estavam.
+- Testado através dos helpers de teste do Livewire: cada field como
+  coluna, cada registo como linha, o estado vazio, a ordenação e a sua
+  inversão de direcção, mudar entre páginas, e apagar a remover mesmo a
+  linha e o registo subjacente.
+- A nota arquitectural sobre o `BlueprintCompiler` (ver "Adiado" abaixo)
+  dizia para observar o que acontecia quando existisse um segundo
+  renderer. Agora existe, e a resposta, pelo menos para este, é: nenhuma
+  duplicação. O `ResourceTable` lê `Blueprint::getFields()` da mesma forma
+  plana que o `SchemaDiff` já faz, nunca toca em `getLayout()`, na
+  resolução de `uses()`, ou na validação de referências como o
+  `ResourceForm` faz. O gatilho continua sem disparar.
 
 **Acabado de sair: o comando `elo:sync`**
 
@@ -157,15 +200,16 @@ caso real por trás ainda.
   pendentes, e aplicar defaults implícitos, de modo a que Form, Table,
   `elo:sync`, API e Export lessem todos a partir de uma única estrutura
   compilada em vez de cada um percorrer o `Blueprint` por conta própria.
-  Ainda não: os dois consumidores actuais nem sequer percorrem o mesmo
-  caminho (`ResourceForm` lê `getLayout()`, `SchemaDiff` lê
-  `getFields()`), por isso não há duplicação real a eliminar, só uma
-  previsão sobre permissions, workflows, computed fields, ou
-  comportamentos gerados por IA daqui a seis meses. Não implementar antes
-  de existir um segundo consumidor real de runtime a resolver `uses()`,
-  validar IDs e aplicar defaults de forma independente, do mesmo modo que
-  o `ResourceForm` já faz, um `ResourceTable`, por exemplo. O teste: se
-  remover este conceito hoje o projecto continua limpo, ainda não é
+  Ainda não: o `ResourceTable` saiu como segundo consumidor real de
+  runtime e, verificado directamente, não resolve composição da forma que
+  o `ResourceForm` resolve, lê `getFields()` de forma plana, tal como o
+  `SchemaDiff`, sem `getLayout()`, sem resolução de `uses()`, por isso
+  continua sem haver duplicação real a eliminar, só uma previsão sobre
+  permissions, workflows, computed fields, ou comportamentos gerados por
+  IA daqui a seis meses. Não implementar antes de existir um consumidor
+  real de runtime a resolver `uses()`, validar IDs e aplicar defaults de
+  forma independente, do mesmo modo que o `ResourceForm` já faz. O teste:
+  se remover este conceito hoje o projecto continua limpo, ainda não é
   estrutural.
 - `elo()->resource($slug)` devolver uma fachada estilo `ResourceHandle`
   (query, table, form, repository, metadata, tudo a partir de uma só
