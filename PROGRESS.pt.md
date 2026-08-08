@@ -82,15 +82,41 @@ linguagem simples, actualizada à medida que o projecto avança.
   que o `ResourceForm` resolve, ver a nota do `BlueprintCompiler` abaixo.
 - O routing ganhou uma terceira rota fixa, `index`, ao lado de `create` e
   `edit`, resolvida da mesma forma, através do mesmo controller genérico.
+- `ActionRunner`, a ligar o handler de uma `Action` (já testado isolado
+  desde que a `Action` foi lançada) a um Resource real: resolve uma
+  Action por id a partir do Blueprint, carrega o registo através do
+  Repository, corre o handler, guarda o que ele devolver. O
+  `ResourceTable` agora renderiza acções de linha como botões por
+  registo e acções em massa numa toolbar acima da tabela, ambas ligadas
+  directamente ao `ActionRunner`. `Delete` continua um método próprio da
+  tabela, sempre disponível, não uma `Action`, toda a tabela precisa
+  dele independentemente do que um Resource declare.
 
 **A seguir:**
 
-Segundo o plano acordado ao adiar o `BlueprintCompiler`: integração de
-`Action` a seguir (delete, publish, duplicate, e o resto a tornarem-se
-comportamento real e executável, provavelmente a aparecer primeiro nas
-acções de linha e em massa do `ResourceTable`), depois descoberta de
-`Module`, a substituir o mapa de slugs mantido à mão assim que existirem
-módulos reais para descobrir.
+Descoberta de `Module`, a substituir o mapa de slugs mantido à mão assim
+que existirem módulos reais para descobrir, segundo o plano acordado ao
+adiar o `BlueprintCompiler`.
+
+**Acabado de sair: `Action`, tornada executável**
+
+- `ActionRunner`: a peça que faltava entre a `Action` saber correr o seu
+  próprio handler e os registos de um Resource mudarem de facto. Um
+  handler que devolve um array de atributos vê-os fundidos no registo
+  carregado e guardados; um handler que devolve outra coisa, `null`, um
+  efeito colateral, a sua própria persistência noutro sítio, fica
+  intocado, nada é guardado automaticamente. O contrato da `Action` não
+  mudou, o `ActionRunner` só acrescenta a busca do registo e o passo de
+  guardar por cima dele.
+- O `ResourceTable` renderiza cada Action não-bulk visível em
+  `Field::CONTEXT_INDEX` como um botão por linha, e cada Action bulk
+  numa toolbar acima da tabela, activa assim que pelo menos uma linha
+  esteja seleccionada. Ambas chamam o `ActionRunner`.
+- Testado com um handler real (`shout`, maiúsculas no título), um handler
+  bulk real (`clear-body`, limpa um campo em cada registo seleccionado),
+  um handler que não devolve nada (confirma que nada é guardado
+  automaticamente), e os dois caminhos de falha: um id de acção não
+  registado, um id de registo que não existe.
 
 **Acabado de sair: `ResourceTable`**
 

@@ -79,14 +79,40 @@ as things move forward.
   note below.
 - Routing gained a third fixed route, `index`, alongside `create` and
   `edit`, resolving the same way, through the same generic controller.
+- `ActionRunner`, connecting `Action`'s handler (already tested in
+  isolation since `Action` itself shipped) to a real Resource: resolves
+  an Action by id from the Blueprint, loads the record through the
+  Repository, runs the handler, saves whatever attributes it returns.
+  `ResourceTable` now renders row actions as buttons per record and bulk
+  actions in a toolbar above the table, both wired straight through
+  `ActionRunner`. `Delete` stays a separate, always-available table
+  method, not an `Action`, every table needs it regardless of what a
+  Resource declares.
 
 **Next up:**
 
-Per the plan agreed while deferring `BlueprintCompiler`: `Action`
-integration next (delete, publish, duplicate, and the rest becoming real,
-runnable behavior, likely surfacing first in `ResourceTable`'s row and
-bulk actions), then `Module` discovery, replacing the hand-maintained slug
-map once real modules exist to discover.
+`Module` discovery, replacing the hand-maintained slug map once real
+modules exist to discover, per the plan agreed while deferring
+`BlueprintCompiler`.
+
+**Just shipped: `Action`, made runnable**
+
+- `ActionRunner`: the piece that was missing between `Action` knowing how
+  to run its own handler and a Resource's records actually changing. A
+  handler returning an array of attributes gets them merged into the
+  loaded record and saved; a handler returning anything else, `null`, a
+  side effect, its own persistence elsewhere, is left alone, nothing gets
+  auto-saved. `Action`'s own contract didn't change, `ActionRunner` only
+  adds the record lookup and the save step on top of it.
+- `ResourceTable` renders every non-bulk Action visible on
+  `Field::CONTEXT_INDEX` as a button per row, and every bulk Action in a
+  toolbar above the table, enabled once at least one row is selected.
+  Both call through to `ActionRunner`.
+- Tested with a real handler (`shout`, uppercases a title), a real bulk
+  handler (`clear-body`, clears a field across every selected record), a
+  handler that returns nothing (confirms nothing gets auto-saved), and
+  both failure paths: an unregistered action id, a record id that doesn't
+  exist.
 
 **Just shipped: `ResourceTable`**
 
