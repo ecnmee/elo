@@ -91,12 +91,50 @@ linguagem simples, actualizada à medida que o projecto avança.
   directamente ao `ActionRunner`. `Delete` continua um método próprio da
   tabela, sempre disponível, não uma `Action`, toda a tabela precisa
   dele independentemente do que um Resource declare.
+- `ModuleRegistry` e `ResourceLocator`, a fechar D1/D2. Módulos de
+  terceiros registam-se através de `elo()->registerModule()` (D2);
+  `Elo::resource()`, `ResourceController`, e `SyncCommand` já não fazem
+  cada um o seu próprio `Config::get("elo.resources.{$slug}")`, os três
+  lêem agora através do `ResourceLocator`, um sítio em vez de três.
+  `Resource::slug()` juntou-se também, um Module declara resources como
+  uma lista simples, algo tem de transformar um class-string num slug
+  navegável, por omissão segue a convenção do nome da classe
+  (`PostResource` -> `posts`), substituível, o mesmo princípio que
+  `Field::attributeName()` já usa contra `attribute()`.
 
 **A seguir:**
 
-Descoberta de `Module`, a substituir o mapa de slugs mantido à mão assim
-que existirem módulos reais para descobrir, segundo o plano acordado ao
-adiar o `BlueprintCompiler`.
+Em aberto. `ResourceTable`, `Action`, e descoberta de `Module`, os três
+itens da sequência acordada ao adiar o `BlueprintCompiler`, estão todos
+lançados agora. O que vem a seguir ainda não está decidido.
+
+**Acabado de sair: descoberta de `Module`**
+
+- `ModuleRegistry`: uma lista singleton de classes Module registadas,
+  `elo()->registerModule(GalleryModule::class)` é o ponto de entrada do
+  D2, um pacote de terceiros chama-o a partir do seu próprio
+  `ServiceProvider::boot()`, a Package Discovery nativa do Laravel é o
+  que faz esse `boot()` correr.
+- `ResourceLocator`: o único sítio onde `config('elo.resources')` e o
+  `resources()` de cada Module registado se combinam num único mapa de
+  slugs. Uma entrada na config ganha numa colisão, explícito vence
+  convenção, a mesma regra que `Field::attribute()` já segue contra
+  `attributeName()`. `Elo::resource()`, `ResourceController::resolve()`,
+  e `SyncCommand::handle()` lêem todos através dele agora, a substituir
+  três cópias separadas da mesma chamada `Config::get()`, exactamente a
+  duplicação apontada como ponto a vigiar durante a revisão do
+  `ResourceTable`, tornou-se real no momento em que passou a existir uma
+  segunda fonte de resources.
+- `Resource::slug()`: por omissão, o nome da classe, menos um "Resource"
+  no fim, kebab-case e pluralizado. Todo o Resource já registado à mão
+  continua a funcionar sem alterações, a config ganha sempre
+  independentemente do que o slug por omissão da sua classe seria.
+- D1 (percorrer `app/Elo/Modules/*` no boot, em cache via `elo:cache`)
+  não está construído. Um Module local já pode chamar `registerModule()`
+  a partir do próprio `AppServiceProvider::boot()` da app, isso já
+  funciona hoje; percorrer o sistema de ficheiros é uma conveniência por
+  cima deste mecanismo, não um pré-requisito dele, e ainda não tem um
+  caso real a puxar por isso.
 
 **Acabado de sair: `Action`, tornada executável**
 

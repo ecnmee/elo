@@ -88,12 +88,47 @@ as things move forward.
   `ActionRunner`. `Delete` stays a separate, always-available table
   method, not an `Action`, every table needs it regardless of what a
   Resource declares.
+- `ModuleRegistry` and `ResourceLocator`, closing D1/D2. Third-party
+  Modules register through `elo()->registerModule()` (D2); `Elo::resource()`,
+  `ResourceController`, and `SyncCommand` no longer each do their own
+  `Config::get("elo.resources.{$slug}")`, all three now read through
+  `ResourceLocator`, one place instead of three. `Resource::slug()`
+  joined too, a Module declares resources as a plain list, something has
+  to turn a class-string into a routable slug, it defaults to the class
+  name convention (`PostResource` -> `posts`), overridable, the same
+  idiom `Field::attributeName()` already uses against `attribute()`.
 
 **Next up:**
 
-`Module` discovery, replacing the hand-maintained slug map once real
-modules exist to discover, per the plan agreed while deferring
-`BlueprintCompiler`.
+Open. `ResourceTable`, `Action`, and `Module` discovery, the three items
+from the sequencing agreed while deferring `BlueprintCompiler`, are all
+shipped now. What comes next hasn't been decided.
+
+**Just shipped: `Module` discovery**
+
+- `ModuleRegistry`: a singleton list of registered Module classes,
+  `elo()->registerModule(GalleryModule::class)` is D2's entry point, a
+  third-party package calls it from its own `ServiceProvider::boot()`,
+  Laravel's native Package Discovery is what gets that `boot()` to run at
+  all.
+- `ResourceLocator`: the single place `config('elo.resources')` and every
+  registered Module's `resources()` get combined into one slug map. A
+  config entry wins on a collision, explicit beats convention, same rule
+  `Field::attribute()` already follows against `attributeName()`.
+  `Elo::resource()`, `ResourceController::resolve()`, and
+  `SyncCommand::handle()` all read through it now, replacing three
+  separate copies of the same `Config::get()` call, exactly the
+  duplication flagged as a watch-item during the `ResourceTable` review,
+  it became real the moment a second source of resources existed.
+- `Resource::slug()`: defaults to the class name, minus a trailing
+  "Resource", kebab-cased and pluralized. Every existing hand-registered
+  Resource keeps working unchanged, config always wins regardless of what
+  its class's default slug would be.
+- D1 (scanning `app/Elo/Modules/*` on boot, cached via `elo:cache`) is
+  not built. A local Module can already call `registerModule()` from the
+  host app's own `AppServiceProvider::boot()`, that works today;
+  filesystem scanning is a convenience on top of this mechanism, not a
+  prerequisite for it, and doesn't have a real case pushing for it yet.
 
 **Just shipped: `Action`, made runnable**
 
