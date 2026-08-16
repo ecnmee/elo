@@ -100,9 +100,44 @@ as things move forward.
 
 **Next up:**
 
-Open. `ResourceTable`, `Action`, and `Module` discovery, the three items
-from the sequencing agreed while deferring `BlueprintCompiler`, are all
-shipped now. What comes next hasn't been decided.
+Still building the real demo application (`Product`, `Service`,
+`Customer`, `Order` on a `BusinessModule`). Two real, unplanned findings
+so far, both fixed directly, not deferred: Laravel 13 wasn't supported,
+`illuminate/support` was pinned to `^11.0|^12.0`, widened to
+`^11.0|^12.0|^13.0`, plus `orchestra/testbench` to `^9.0|^10.0|^11.0` for
+the matching test toolchain. Then `elo:sync` itself, generating a single
+migration file for every table changed in one run, readable at four
+Resources, not at real scale (unreviewable diff, no per-table git blame,
+no per-table rollback). Fixed: `SyncCommand` now writes one migration per
+table, `SchemaSnapshot`, `SchemaDiff`, `Operation`, and `ColumnDefinition`
+untouched, only `SyncCommand` and `MigrationWriter` (a new optional
+`$timestamp` parameter on `write()`) changed. No relationship Field type
+yet (`Order` can't declare "belongs to Customer"), and no numeric Field
+type (`price`/`total` are `Text`), both still open, tracked below,
+waiting to see whether the rest of the demo needs them before building
+either.
+
+**Just shipped: one migration per table, not one per run**
+
+- `SyncCommand` now groups the `Operations` it collects by table before
+  handing them to `MigrationWriter`, one `write()` call per table instead
+  of one for the entire run. Four Resources changing produces four
+  files, `create_products_table`, `create_services_table`, and so on,
+  not one `sync_elo_resources` file listing all four.
+- `MigrationWriter::write()` gained an optional `$timestamp` parameter.
+  `SyncCommand` passes a base timestamp plus one second per file, so
+  filenames sort in the same deterministic order they were generated in,
+  even when every file is written within the same wall-clock second, no
+  `sleep()` involved.
+- `SchemaSnapshot`, `SchemaDiff`, `Operation`, and `ColumnDefinition` are
+  untouched, the grouping already existed inside `SchemaDiff` (one
+  `CreateTable`, or a list of `AddColumn`, never mixed, per table), this
+  only changed how `SyncCommand` hands that grouping to the writer.
+- Found by building the Business demo, not anticipated: a single file
+  for four tables was still readable, the reviewer's point was that it
+  stops being reviewable, git-blameable, or individually rollback-able
+  well before real scale, an organizational problem, not a performance
+  one.
 
 **Just shipped: `Module` discovery**
 
@@ -248,6 +283,19 @@ shipped now. What comes next hasn't been decided.
 
 **Deferred, tracked, not implemented:**
 
+- A relationship Field type (`BelongsTo::make('customer', CustomerResource::class)`,
+  ADR-001, D3). Surfaced by the Business demo: `OrderResource` cannot
+  declare that an Order belongs to a Customer or a Product, it only got
+  a free-text `reference` field instead. Likely the most significant gap
+  the demo has found so far, arguably the one that would make Elo
+  express real relational data, not implemented yet because the demo
+  hasn't finished proving exactly what shape it needs.
+- A numeric Field type. `Product.price`, `Service.price`, and
+  `Order.total` all use `Text` today, which is honest about what exists,
+  not a workaround: they render as text inputs and sync as `string`
+  columns. Watching whether the rest of the demo needs more than one
+  numeric shape (integer cents vs decimal, for instance) before building
+  it.
 - `BlueprintCompiler` / `CompiledBlueprint`: a single compilation pipeline
   resolving `uses()`, validating duplicate and pending references, and
   applying implicit defaults, so Form, Table, `elo:sync`, API, and Export

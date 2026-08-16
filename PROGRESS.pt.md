@@ -104,9 +104,47 @@ linguagem simples, actualizada à medida que o projecto avança.
 
 **A seguir:**
 
-Em aberto. `ResourceTable`, `Action`, e descoberta de `Module`, os três
-itens da sequência acordada ao adiar o `BlueprintCompiler`, estão todos
-lançados agora. O que vem a seguir ainda não está decidido.
+Ainda a construir a demo real (`Product`, `Service`, `Customer`, `Order`
+num `BusinessModule`). Duas descobertas reais até agora, não planeadas,
+ambas corrigidas directamente, não adiadas: Laravel 13 não era suportado,
+`illuminate/support` estava preso a `^11.0|^12.0`, alargado para
+`^11.0|^12.0|^13.0`, mais `orchestra/testbench` para `^9.0|^10.0|^11.0`
+para a cadeia de testes correspondente. Depois o próprio `elo:sync`, a
+gerar um único ficheiro de migration para todas as tabelas alteradas
+numa corrida, legível com quatro Resources, não à escala real (diff
+irrevisável, sem git blame por tabela, sem rollback por tabela).
+Corrigido: `SyncCommand` passa a escrever uma migration por tabela,
+`SchemaSnapshot`, `SchemaDiff`, `Operation`, e `ColumnDefinition`
+intocados, só `SyncCommand` e `MigrationWriter` (um novo parâmetro
+opcional `$timestamp` em `write()`) mudaram. Ainda sem Field de relação
+(`Order` não consegue declarar "pertence a Customer"), e sem Field
+numérico (`price`/`total` são `Text`), ambos em aberto, registados
+abaixo, à espera de ver se o resto da demo precisa deles antes de
+construir qualquer um.
+
+**Acabado de sair: uma migration por tabela, não uma por corrida**
+
+- `SyncCommand` agora agrupa as `Operations` que recolhe por tabela antes
+  de as entregar ao `MigrationWriter`, uma chamada a `write()` por tabela
+  em vez de uma só para a corrida toda. Quatro Resources a mudar produz
+  quatro ficheiros, `create_products_table`, `create_services_table`, e
+  por aí fora, não um único ficheiro `sync_elo_resources` a listar os
+  quatro.
+- `MigrationWriter::write()` ganhou um parâmetro opcional `$timestamp`.
+  O `SyncCommand` passa um timestamp base mais um segundo por ficheiro,
+  para que os nomes ordenem na mesma sequência determinística em que
+  foram gerados, mesmo quando todos os ficheiros são escritos dentro do
+  mesmo segundo de relógio, sem `sleep()` nenhum.
+- `SchemaSnapshot`, `SchemaDiff`, `Operation`, e `ColumnDefinition`
+  ficaram intocados, o agrupamento já existia dentro do `SchemaDiff` (um
+  `CreateTable`, ou uma lista de `AddColumn`, nunca misturados, por
+  tabela), isto só mudou a forma como o `SyncCommand` entrega esse
+  agrupamento ao writer.
+- Encontrado a construir a demo de Business, não antecipado: um único
+  ficheiro para quatro tabelas continuava legível, o ponto do revisor foi
+  que deixa de ser revisável, rastreável por git blame, ou reversível por
+  tabela bem antes da escala real, um problema de organização, não de
+  performance.
 
 **Acabado de sair: descoberta de `Module`**
 
@@ -259,6 +297,20 @@ lançados agora. O que vem a seguir ainda não está decidido.
 
 **Adiado, registado, não implementado:**
 
+- Um Field de relação (`BelongsTo::make('customer', CustomerResource::class)`,
+  ADR-001, D3). Revelado pela demo de Business: `OrderResource` não
+  consegue declarar que uma Order pertence a um Customer ou a um
+  Product, só ficou com um `reference` de texto livre em vez disso.
+  Provavelmente a lacuna mais significativa que a demo encontrou até
+  agora, possivelmente a que faria o Elo exprimir dados relacionais a
+  sério, ainda não implementada porque a demo ainda não acabou de provar
+  exactamente que forma isto precisa de ter.
+- Um Field numérico. `Product.price`, `Service.price`, e `Order.total`
+  usam todos `Text` hoje, o que é honesto sobre o que existe, não um
+  desvio: renderizam como inputs de texto e sincronizam como colunas
+  `string`. A vigiar se o resto da demo precisa de mais do que uma forma
+  numérica (inteiro em cêntimos vs decimal, por exemplo) antes de
+  construir isto.
 - `BlueprintCompiler` / `CompiledBlueprint`: um único pipeline de
   compilação a resolver `uses()`, validar referências duplicadas e
   pendentes, e aplicar defaults implícitos, de modo a que Form, Table,
