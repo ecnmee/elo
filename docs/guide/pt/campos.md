@@ -2,15 +2,24 @@
 
 # Fields
 
-O único tipo de Field que existe hoje é o `Text`, um input de texto de uma
-linha. Tudo o que vem a seguir funciona agora mesmo, com testes reais por
-trás.
+Existem hoje dois tipos de Field: `Text`, um input de texto de uma linha,
+e `Number`, um input numérico simples, apoiado numa coluna `decimal`.
+Tudo o que vem a seguir funciona agora mesmo, com testes reais por trás,
+e aplica-se aos dois, os exemplos abaixo usam o `Text`.
 
 ```php
 use Ecnmee\Elo\Fields\Text;
+use Ecnmee\Elo\Fields\Number;
 
 Text::make('title');
+Number::make('price');
 ```
+
+O `Number` é deliberadamente genérico, não `Money`, `Currency`,
+`Integer`, nem `Decimal`. Isso seria semântica de negócio (uma moeda,
+uma regra de arredondamento) ou uma escolha de precisão/escala, o
+`Number` representa o dado, nada mais, com a precisão e escala por
+omissão do Laravel para `decimal` (8, 2).
 
 ## Identidade e persistência
 
@@ -84,13 +93,22 @@ que um sítio, personalizá-lo num sítio nunca vaza para outro.
 ## Renderização
 
 O `Text` renderiza-se através de uma view Blade, resolvida por convenção
-(`elo::fields.text`). Ainda não há nenhum painel funcional para o ver, mas
-podes renderizá-lo directamente:
+(`elo::fields.text`). O `Number` segue a mesma convenção
+(`elo::fields.number`), um `<input type="number">` simples. Ainda não há
+nenhum painel funcional para ver nenhum dos dois, mas podes renderizá-los
+directamente:
 
 ```php
 view('elo::fields.text', [
     'field' => Text::make('title')->required(),
     'value' => 'Ola mundo',
+    'context' => 'create',
+    'error' => null,
+])->render();
+
+view('elo::fields.number', [
+    'field' => Number::make('price')->required(),
+    'value' => 19.99,
     'context' => 'create',
     'error' => null,
 ])->render();

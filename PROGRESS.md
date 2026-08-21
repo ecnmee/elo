@@ -111,11 +111,134 @@ Resources, not at real scale (unreviewable diff, no per-table git blame,
 no per-table rollback). Fixed: `SyncCommand` now writes one migration per
 table, `SchemaSnapshot`, `SchemaDiff`, `Operation`, and `ColumnDefinition`
 untouched, only `SyncCommand` and `MigrationWriter` (a new optional
-`$timestamp` parameter on `write()`) changed. No relationship Field type
-yet (`Order` can't declare "belongs to Customer"), and no numeric Field
-type (`price`/`total` are `Text`), both still open, tracked below,
-waiting to see whether the rest of the demo needs them before building
-either.
+`$timestamp` parameter on `write()`) changed. Then the most serious
+finding yet: `CreateTable::up()` never generated an `id()` column,
+`Schema::create()` doesn't add one on its own, so every table `elo:sync`
+had ever generated had no primary key at all. Every read still "worked",
+`SELECT *` doesn't need a primary key, but every record came back missing
+`id`, which broke `ResourceTable`'s `wire:key` outright the first time a
+real record existed to render. No test caught it because every existing
+test built its own table by hand with `$table->id()` already there, never
+through a real `CreateTable::up()` call. Fixed: `id()` is now
+unconditional, first line, every time. Two more findings from actually
+using the demo, not just building it: `ResourceForm::save()` completed
+silently, no redirect, no visible feedback, a Livewire request finishing
+with nothing to show for it reads as "nothing happened". `ResourceTable`
+had Delete and whatever custom Actions a Resource declared, but no way
+back into a record once it existed, no Edit link at all. Both fixed:
+`save()` redirects to the Resource's index route now, every row links to
+its edit page. No relationship Field type yet (`Order` can't declare
+"belongs to Customer"), still open, tracked below. Also tracked, not built: a
+branded confirm dialog instead of the browser's native one, icon buttons
+(SVG, not an icon font, per explicit preference) instead of text, and
+navigation, `Module::menu()` has existed as a hook since the beginning
+with nothing rendering it yet, the demo made that concrete for the first
+time without yet changing its priority. One more real gap surfaced by
+actually clicking through the demo: `discontinue`/`reactivate` and
+`archive`/`unarchive` both showed on every Product regardless of its
+current status, `reactivate` on an already-active Product makes no
+sense. `Action` had no way to answer "is this Action shown for this
+specific record", only `isVisibleOn()`, a static per-context question
+(index/create/edit). Fixed with a new, orthogonal method,
+`Action::visibleWhen(callable $condition)`, evaluated per row in
+`ResourceTable`. Last, from the same click-through: text-only buttons
+read as noisy once several sat side by side, and the table itself had no
+answer for a narrow screen, it just stayed a wide table. Fixed: `Action`
+gained an optional `icon(string $svg)`, raw SVG, falls back to the text
+label when unset; `ResourceTable`'s Edit and Delete are icon-only now,
+unconditionally. Below 768px the table becomes a stack of cards, one per
+record, via CSS alone (`data-label` on each cell, the same markup serves
+both layouts, nothing duplicated). No relationship Field type yet
+(`Order` can't declare "belongs to Customer"), and a branded confirm
+dialog instead of the browser's native one, both still open, tracked
+below.
+
+**Just shipped: the second real Field (`Number`)**
+
+- `Ecnmee\Elo\Fields\Number`, a plain numeric input backed by a `decimal`
+  column (Laravel's default precision/scale, 8 and 2), following the
+  exact same contract `Text` already established: `type()`, view by
+  convention (`elo::fields.number`), lifecycle, context, default. No new
+  concept on `Field` was needed.
+- Deliberately generic: not `Money`, `Currency`, `Integer`, or `Decimal`.
+  Those are either business semantics (a currency, a rounding rule) or a
+  precision/scale choice no caller has asked for, `Number` represents the
+  data, nothing more, per ADR-003. `PROGRESS.md` had been watching
+  whether the demo needed more than one numeric shape before building
+  this, it never did, `price`/`total` all just need a number.
+- The demo's `ProductResource`, `ServiceResource`, and `OrderResource`
+  now use `Number` for `price`/`total` instead of `Text`, so those
+  columns sync as `decimal`, not `string`, the next `php artisan
+  elo:sync` run picks that up as a normal, additive migration.
+- Guide docs (`docs/guide/en/fields.md`, `docs/guide/pt/campos.md`)
+  updated to document both Field types side by side.
+
+**Just shipped: icons and a responsive card layout for `ResourceTable`**
+
+- `Action::icon(string $svg)`/`getIcon()`: optional, a raw SVG string
+  rendered unescaped, the text label stays the fallback when no icon is
+  set, so every existing Action keeps working exactly as it did.
+- `ResourceTable`'s Edit and Delete links are icon-only now, a pencil and
+  a trash glyph, `aria-label`/`title` carry the accessible name neither
+  one shows visibly any more. Row and bulk Actions render their icon when
+  one is set, their text label otherwise, both fully optional.
+- Below 768px, `ResourceTable` renders as a stack of cards instead of a
+  horizontally cramped table, pure CSS, no JS, no second template:
+  `data-label` on each cell supplies the column name via `::before`, the
+  exact same Blade markup renders both layouts.
+- The demo's `ProductResource` and `OrderResource` now use `icon()` on
+  every Action, via a small `app/Elo/Icons.php` in the demo app itself,
+  not the framework, kept there deliberately so no Resource class needs
+  a wall of inline SVG strings.
+
+**Just shipped: `Action::visibleWhen()`, conditional per record**
+
+- `Action` gained `visibleWhen(callable $condition)` and
+  `isVisibleFor(mixed $record)`, deliberately separate from
+  `isVisibleOn()`/context: a context check needs no record, a record
+  check needs no context, conflating them would have made either one
+  harder to reason about.
+- `ResourceTable` evaluates it per row now, a Discontinue button only
+  renders for records whose status makes discontinuing make sense.
+- In the demo, this turned `archive`/`unarchive` from bulk Actions into
+  row Actions, toggling one record's state is exactly what
+  `visibleWhen()` is for, a genuine `cancel` bulk Action stayed on
+  `OrderResource` as the real example of that shape.
+
+**Just shipped: `ResourceForm` redirects, `ResourceTable` links to edit**
+
+- `ResourceForm::save()` now redirects to `elo.index` for the Resource
+  after a successful save. Before, saving completed with no page
+  navigation and no visible network request (it's Livewire, there isn't
+  one to watch), so a person using the form for the first time had no
+  way to tell whether anything had happened.
+- `ResourceTable` gained an "Edit" link per row, pointing at `elo.edit`.
+  Delete already existed as a permanent, non-Action link; Edit was the
+  other half of that and was simply missing, every row's Actions column
+  led everywhere except back into the record itself.
+- Both found by using the demo, not by building it, the difference
+  between a Resource compiling and a Resource being usable.
+
+**Just shipped: `CreateTable` now gives every table a primary key**
+
+- `id()` was missing from every generated `CREATE TABLE`, an
+  auto-incrementing primary key that Laravel's `Schema::create()` never
+  adds unless something explicitly calls `$table->id()`, and nothing did.
+  Every column a Resource declared, plus `timestamps()`, but never the
+  one column nothing declares because it's assumed: the primary key.
+- Found in the Business demo, not by a test: `/elo/products` threw
+  `Undefined array key "id"` the moment a real `Product` record existed
+  to render in `ResourceTable`, `wire:key="elo-row-{{ $row['id'] }}"`
+  needs the key every record is supposed to have.
+- Every existing SchemaDiff/MigrationWriter/CreateTable test had built
+  its fixture table by hand, `Schema::create(..., function ($table) {
+  $table->id(); ... })`, with the id column added outside the code under
+  test, so nothing ever exercised a real `CreateTable::up()` call end to
+  end against a fresh table and then read a record back out of it. Two
+  new tests close that gap directly: one asserts `id()` is the first line
+  generated, one actually inserts two rows through a migration
+  `CreateTable` produced and confirms real, incrementing primary keys
+  come back.
 
 **Just shipped: one migration per table, not one per run**
 
@@ -290,12 +413,8 @@ either.
   the demo has found so far, arguably the one that would make Elo
   express real relational data, not implemented yet because the demo
   hasn't finished proving exactly what shape it needs.
-- A numeric Field type. `Product.price`, `Service.price`, and
-  `Order.total` all use `Text` today, which is honest about what exists,
-  not a workaround: they render as text inputs and sync as `string`
-  columns. Watching whether the rest of the demo needs more than one
-  numeric shape (integer cents vs decimal, for instance) before building
-  it.
+- ~~A numeric Field type.~~ Shipped, see "Just shipped: the second real
+  Field (`Number`)" above.
 - `BlueprintCompiler` / `CompiledBlueprint`: a single compilation pipeline
   resolving `uses()`, validating duplicate and pending references, and
   applying implicit defaults, so Form, Table, `elo:sync`, API, and Export

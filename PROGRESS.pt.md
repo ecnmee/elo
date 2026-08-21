@@ -116,11 +116,145 @@ irrevisável, sem git blame por tabela, sem rollback por tabela).
 Corrigido: `SyncCommand` passa a escrever uma migration por tabela,
 `SchemaSnapshot`, `SchemaDiff`, `Operation`, e `ColumnDefinition`
 intocados, só `SyncCommand` e `MigrationWriter` (um novo parâmetro
-opcional `$timestamp` em `write()`) mudaram. Ainda sem Field de relação
-(`Order` não consegue declarar "pertence a Customer"), e sem Field
-numérico (`price`/`total` são `Text`), ambos em aberto, registados
-abaixo, à espera de ver se o resto da demo precisa deles antes de
-construir qualquer um.
+opcional `$timestamp` em `write()`) mudaram. Depois a descoberta mais
+séria até agora: `CreateTable::up()` nunca gerava uma coluna `id()`, o
+`Schema::create()` não acrescenta uma sozinho, por isso toda a tabela que
+o `elo:sync` já tinha gerado ficava sem chave primária nenhuma. Toda a
+leitura continuava "a funcionar", um `SELECT *` não precisa de chave
+primária, mas todo o registo voltava sem `id`, o que partiu o
+`wire:key` do `ResourceTable` de imediato, na primeira vez que existiu um
+registo real para renderizar. Nenhum teste apanhou isto porque todo o
+teste existente construía a sua própria tabela à mão, já com
+`$table->id()` lá posto, nunca através de uma chamada real a
+`CreateTable::up()`. Corrigido: `id()` passa a ser incondicional, sempre
+a primeira linha. Mais duas descobertas ao usar mesmo a demo, não só ao
+construí-la: `ResourceForm::save()` terminava em silêncio, sem
+redireccionar, sem feedback visível, um pedido Livewire a terminar sem
+nada para mostrar lê-se como "não aconteceu nada". O `ResourceTable`
+tinha Delete e as Actions personalizadas que um Resource declarasse, mas
+nenhuma forma de voltar a um registo depois de criado, sem link de
+Editar nenhum. Ambas corrigidas: `save()` redirecciona agora para o
+`index` do Resource, cada linha liga à sua página de edição. Ainda sem
+Field de relação (`Order` não consegue declarar "pertence a Customer"),
+em aberto, registado abaixo. Também registado, não construído: uma caixa de
+confirmação com a marca do Elo em vez da nativa do browser, botões com
+ícones (SVG, não fonte de ícones, por preferência explícita) em vez de
+texto, e navegação, o `Module::menu()` existe como hook desde o início
+sem nada a renderizá-lo ainda, a demo tornou isso concreto pela primeira
+vez sem ainda mudar a prioridade. Mais uma lacuna real revelada ao clicar
+mesmo na demo: `discontinue`/`reactivate` e `archive`/`unarchive`
+apareciam ambos em todo o Product independentemente do seu status,
+`reactivate` num Product já activo não faz sentido nenhum. O `Action`
+não tinha forma de responder "este Action aparece para este registo
+específico", só `isVisibleOn()`, uma pergunta estática por contexto
+(index/create/edit). Corrigido com um método novo, ortogonal,
+`Action::visibleWhen(callable $condition)`, avaliado por linha no
+`ResourceTable`. Por último, do mesmo percurso na demo: botões só com
+texto liam-se como ruído assim que vários ficavam lado a lado, e a
+tabela em si não tinha resposta nenhuma para um ecrã estreito, ficava
+simplesmente uma tabela larga. Corrigido: o `Action` ganhou um
+`icon(string $svg)` opcional, SVG cru, cai para o texto quando não
+definido; o Edit e o Delete do `ResourceTable` passam a ser só ícone,
+incondicionalmente. Abaixo de 768px a tabela vira uma pilha de cartões,
+um por registo, só com CSS (`data-label` em cada célula, o mesmo
+markup serve os dois layouts, nada duplicado). Ainda sem Field de
+relação (`Order` não consegue declarar "pertence a Customer"), e sem uma
+caixa de confirmação com a marca do Elo em vez da nativa do browser,
+ambos ainda em aberto, registados abaixo.
+
+**Acabado de sair: o segundo Field real (`Number`)**
+
+- `Ecnmee\Elo\Fields\Number`, um input numérico simples apoiado numa
+  coluna `decimal` (precisão/escala por omissão do Laravel, 8 e 2),
+  seguindo exactamente o mesmo contrato que o `Text` já estabeleceu:
+  `type()`, view por convenção (`elo::fields.number`), ciclo de vida,
+  contexto, valor por omissão. Nenhum conceito novo foi preciso no
+  `Field`.
+- Deliberadamente genérico: não `Money`, `Currency`, `Integer`, nem
+  `Decimal`. Isso seria semântica de negócio (uma moeda, uma regra de
+  arredondamento) ou uma escolha de precisão/escala que ninguém pediu
+  ainda, o `Number` representa o dado, nada mais, segundo a ADR-003. O
+  `PROGRESS.md` estava a observar se a demo precisava de mais do que uma
+  forma numérica antes de construir isto, nunca precisou,
+  `price`/`total` só precisam de um número.
+- O `ProductResource`, `ServiceResource`, e `OrderResource` da demo usam
+  agora `Number` para `price`/`total` em vez de `Text`, essas colunas
+  sincronizam como `decimal`, não `string`, a próxima corrida de `php
+  artisan elo:sync` apanha isso como uma migration normal, aditiva.
+- Documentação de guia (`docs/guide/en/fields.md`,
+  `docs/guide/pt/campos.md`) actualizada para documentar os dois tipos
+  de Field lado a lado.
+
+**Acabado de sair: ícones e layout responsivo em cartões no `ResourceTable`**
+
+- `Action::icon(string $svg)`/`getIcon()`: opcional, uma string SVG cru
+  renderizada sem escapar, o texto continua a ser o fallback quando
+  nenhum ícone está definido, por isso todo o Action já existente
+  continua a funcionar exactamente como antes.
+- O Edit e o Delete do `ResourceTable` passam a ser só ícone, um lápis e
+  um caixote do lixo, `aria-label`/`title` carregam o nome acessível que
+  nenhum dos dois mostra visivelmente agora. Actions de linha e bulk
+  renderizam o seu ícone quando definido, o texto caso contrário, ambos
+  totalmente opcionais.
+- Abaixo de 768px, o `ResourceTable` renderiza como uma pilha de cartões
+  em vez de uma tabela apertada na horizontal, CSS puro, sem JS, sem
+  segundo template: `data-label` em cada célula fornece o nome da coluna
+  via `::before`, o mesmo markup Blade exacto serve os dois layouts.
+- O `ProductResource` e o `OrderResource` da demo usam agora `icon()` em
+  todo o Action, através de um pequeno `app/Elo/Icons.php` só na app da
+  demo, não no framework, mantido lá de propósito para nenhum Resource
+  precisar de uma parede de strings SVG inline.
+
+**Acabado de sair: `Action::visibleWhen()`, condicional por registo**
+
+- O `Action` ganhou `visibleWhen(callable $condition)` e
+  `isVisibleFor(mixed $record)`, deliberadamente separado de
+  `isVisibleOn()`/contexto: uma verificação de contexto não precisa de
+  registo, uma verificação de registo não precisa de contexto, misturar
+  os dois teria tornado qualquer um dos dois mais difícil de raciocinar.
+- O `ResourceTable` avalia isto por linha agora, um botão Discontinue só
+  renderiza para registos cujo status faz sentido descontinuar.
+- Na demo, isto transformou `archive`/`unarchive` de Actions bulk em
+  Actions de linha, alternar o estado de UM registo é exactamente para
+  que serve o `visibleWhen()`, um `cancel` bulk a sério ficou no
+  `OrderResource` como exemplo real dessa forma.
+
+**Acabado de sair: `ResourceForm` redirecciona, `ResourceTable` liga a editar**
+
+- `ResourceForm::save()` redirecciona agora para o `elo.index` do
+  Resource depois de gravar com sucesso. Antes, gravar terminava sem
+  navegação de página e sem pedido de rede visível (é Livewire, não há
+  nenhum para observar), por isso alguém a usar o formulário pela
+  primeira vez não tinha forma de saber se algo tinha acontecido.
+- O `ResourceTable` ganhou um link "Edit" por linha, a apontar para
+  `elo.edit`. O Delete já existia como link permanente, não uma Action;
+  o Edit era a outra metade disso e simplesmente faltava, a coluna de
+  Actions de cada linha levava para todo o lado excepto de volta ao
+  próprio registo.
+- Ambas encontradas a usar a demo, não a construí-la, a diferença entre
+  um Resource compilar e um Resource ser usável.
+
+**Acabado de sair: o `CreateTable` já dá chave primária a toda a tabela**
+
+- Faltava o `id()` em todo o `CREATE TABLE` gerado, uma chave primária
+  auto-incremental que o `Schema::create()` do Laravel nunca acrescenta a
+  menos que algo chame `$table->id()` explicitamente, e nada chamava.
+  Cada coluna que um Resource declarava, mais `timestamps()`, mas nunca a
+  única coluna que ninguém declara por ser assumida: a chave primária.
+- Encontrado na demo de Business, não por um teste: `/elo/products`
+  lançava `Undefined array key "id"` no momento em que existiu um
+  `Product` real para renderizar no `ResourceTable`,
+  `wire:key="elo-row-{{ $row['id'] }}"` precisa da chave que todo o
+  registo supostamente tem.
+- Todo o teste existente de SchemaDiff/MigrationWriter/CreateTable tinha
+  construído a sua tabela fixture à mão, `Schema::create(..., function
+  ($table) { $table->id(); ... })`, com a coluna id acrescentada fora do
+  código a testar, por isso nada exercitava de facto uma chamada real a
+  `CreateTable::up()` de ponta a ponta contra uma tabela nova e depois lia
+  um registo de volta. Dois testes novos fecham essa lacuna directamente:
+  um confirma que `id()` é a primeira linha gerada, outro insere mesmo
+  duas linhas através de uma migration que o `CreateTable` produziu e
+  confirma que voltam chaves primárias reais, a incrementar.
 
 **Acabado de sair: uma migration por tabela, não uma por corrida**
 
@@ -305,12 +439,8 @@ construir qualquer um.
   agora, possivelmente a que faria o Elo exprimir dados relacionais a
   sério, ainda não implementada porque a demo ainda não acabou de provar
   exactamente que forma isto precisa de ter.
-- Um Field numérico. `Product.price`, `Service.price`, e `Order.total`
-  usam todos `Text` hoje, o que é honesto sobre o que existe, não um
-  desvio: renderizam como inputs de texto e sincronizam como colunas
-  `string`. A vigiar se o resto da demo precisa de mais do que uma forma
-  numérica (inteiro em cêntimos vs decimal, por exemplo) antes de
-  construir isto.
+- ~~Um Field numérico.~~ Lançado, ver "Acabado de sair: o segundo Field
+  real (`Number`)" acima.
 - `BlueprintCompiler` / `CompiledBlueprint`: um único pipeline de
   compilação a resolver `uses()`, validar referências duplicadas e
   pendentes, e aplicar defaults implícitos, de modo a que Form, Table,
