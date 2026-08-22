@@ -153,6 +153,26 @@ both layouts, nothing duplicated). No relationship Field type yet
 dialog instead of the browser's native one, both still open, tracked
 below.
 
+**Just shipped: `Customer` and `Service` filled out, validating the demo**
+
+- Not new Resources, `CustomerResource` and `ServiceResource` already
+  existed. This was the "validate, don't just add" step: fill both out
+  to a realistic shape and see what friction the framework has left, per
+  the plan of finishing `Number` before deciding on the relationship
+  Field.
+- `CustomerResource` gained `phone` (`Text`, optional) and `status`
+  (`Text`, defaults to `'active'`), the same pattern `Product`/`Order`
+  already established for status.
+- `ServiceResource` gained `active` (`Text`, defaults to `'true'`).
+  Surfaced a real gap doing it: there is no Boolean Field type yet, so
+  `active` stores and syncs as a plain string column, `'true'`/`'false'`,
+  not a real boolean. Same honest, not-worked-around pattern `price` used
+  on `Text` before `Number` existed. Tracked below, not solved here on
+  purpose, this alone isn't reason enough to build a whole Field type.
+- No other friction surfaced. Two `Text` fields, a default, and a layout
+  Section were enough for both, nothing about the demo's shape pushed
+  back on the framework this time.
+
 **Just shipped: the second real Field (`Number`)**
 
 - `Ecnmee\Elo\Fields\Number`, a plain numeric input backed by a `decimal`
@@ -167,9 +187,13 @@ below.
   whether the demo needed more than one numeric shape before building
   this, it never did, `price`/`total` all just need a number.
 - The demo's `ProductResource`, `ServiceResource`, and `OrderResource`
-  now use `Number` for `price`/`total` instead of `Text`, so those
-  columns sync as `decimal`, not `string`, the next `php artisan
-  elo:sync` run picks that up as a normal, additive migration.
+  now use `Number` for `price`/`total` instead of `Text`. Running `php
+  artisan elo:sync` afterward reported "already in sync", surfacing a
+  real gap: `SchemaDiff` only ever compares column *presence*, never
+  type, by design (ADR-001 D7/D8, additive-only), so a Field changing
+  type on an already-synced column is silently invisible to it. The
+  demo's `price`/`total` columns stay `string` in the database until
+  someone writes a manual migration, tracked below.
 - Guide docs (`docs/guide/en/fields.md`, `docs/guide/pt/campos.md`)
   updated to document both Field types side by side.
 
@@ -415,6 +439,21 @@ below.
   hasn't finished proving exactly what shape it needs.
 - ~~A numeric Field type.~~ Shipped, see "Just shipped: the second real
   Field (`Number`)" above.
+- `SchemaDiff` type-change detection. Confirmed by shipping `Number`:
+  changing a Field's `type()` on a column that already exists produces
+  no operation, `elo:sync` reports "already in sync" and the column's
+  real type is unchanged. Correct for the additive-only design as
+  written (ADR-001 D7/D8: never alter, never drop), but it means a
+  Field's declared type and the database's actual column type can now
+  silently diverge, worth a real look once a second case surfaces, an
+  `AlterColumn` Operation isn't a small addition on its own.
+- A Boolean Field type. Surfaced filling out `ServiceResource.active`,
+  see "Just shipped: `Customer` and `Service` filled out" above: `active`
+  stores and syncs as a plain string (`'true'`/`'false'`), not a real
+  boolean, no checkbox, no true/false semantics anywhere in the stack.
+  One occurrence isn't enough to commit to a shape yet, `Product`/`Order`/
+  `Customer` all model status as a multi-value `Text` column instead of a
+  boolean, so this needs a second real case before building it.
 - `BlueprintCompiler` / `CompiledBlueprint`: a single compilation pipeline
   resolving `uses()`, validating duplicate and pending references, and
   applying implicit defaults, so Form, Table, `elo:sync`, API, and Export

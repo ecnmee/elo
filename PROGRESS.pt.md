@@ -162,6 +162,27 @@ relação (`Order` não consegue declarar "pertence a Customer"), e sem uma
 caixa de confirmação com a marca do Elo em vez da nativa do browser,
 ambos ainda em aberto, registados abaixo.
 
+**Acabado de sair: `Customer` e `Service` preenchidos, a validar a demo**
+
+- Não são Resources novas, `CustomerResource` e `ServiceResource` já
+  existiam. Este foi o passo de "validar, não só acrescentar": preencher
+  os dois com uma forma realista e ver que fricção sobrou na framework,
+  seguindo o plano de acabar o `Number` antes de decidir sobre o Field
+  de relação.
+- O `CustomerResource` ganhou `phone` (`Text`, opcional) e `status`
+  (`Text`, com omissão `'active'`), o mesmo padrão que `Product`/`Order`
+  já tinham estabelecido para o status.
+- O `ServiceResource` ganhou `active` (`Text`, com omissão `'true'`).
+  Revelou uma lacuna real ao fazê-lo: ainda não existe nenhum Field
+  Boolean, por isso `active` guarda-se e sincroniza como uma coluna de
+  texto simples, `'true'`/`'false'`, não um booleano a sério. O mesmo
+  padrão honesto, sem desvio, que o `price` usou em `Text` antes do
+  `Number` existir. Registado abaixo, não resolvido aqui de propósito,
+  isto sozinho não é razão suficiente para construir um Field inteiro.
+- Nenhuma outra fricção surgiu. Dois campos `Text`, uma omissão, e uma
+  Section de layout chegaram para os dois, nada na forma da demo desta
+  vez fez pressão sobre a framework.
+
 **Acabado de sair: o segundo Field real (`Number`)**
 
 - `Ecnmee\Elo\Fields\Number`, um input numérico simples apoiado numa
@@ -178,9 +199,13 @@ ambos ainda em aberto, registados abaixo.
   forma numérica antes de construir isto, nunca precisou,
   `price`/`total` só precisam de um número.
 - O `ProductResource`, `ServiceResource`, e `OrderResource` da demo usam
-  agora `Number` para `price`/`total` em vez de `Text`, essas colunas
-  sincronizam como `decimal`, não `string`, a próxima corrida de `php
-  artisan elo:sync` apanha isso como uma migration normal, aditiva.
+  agora `Number` para `price`/`total` em vez de `Text`. Correr o `php
+  artisan elo:sync` a seguir reportou "already in sync", revelando uma
+  lacuna real: o `SchemaDiff` só compara a *presença* de colunas, nunca
+  o tipo, por desenho (ADR-001 D7/D8, aditivo apenas), por isso um Field
+  a mudar de tipo numa coluna já sincronizada fica invisível para ele.
+  As colunas `price`/`total` da demo mantêm-se `string` na base de dados
+  até alguém escrever uma migration manual, registado abaixo.
 - Documentação de guia (`docs/guide/en/fields.md`,
   `docs/guide/pt/campos.md`) actualizada para documentar os dois tipos
   de Field lado a lado.
@@ -441,6 +466,23 @@ ambos ainda em aberto, registados abaixo.
   exactamente que forma isto precisa de ter.
 - ~~Um Field numérico.~~ Lançado, ver "Acabado de sair: o segundo Field
   real (`Number`)" acima.
+- Deteção de mudança de tipo no `SchemaDiff`. Confirmado ao lançar o
+  `Number`: mudar o `type()` de um Field numa coluna que já existe não
+  produz nenhuma operação, o `elo:sync` reporta "already in sync" e o
+  tipo real da coluna fica por mudar. Correto para o desenho aditivo
+  apenas tal como está escrito (ADR-001 D7/D8: nunca altera, nunca
+  elimina), mas significa que o tipo declarado de um Field e o tipo
+  real da coluna na base de dados podem agora divergir em silêncio,
+  vale a pena um olhar a sério assim que surgir um segundo caso, um
+  Operation `AlterColumn` não é uma adição pequena por si só.
+- Um Field Boolean. Revelado ao preencher `ServiceResource.active`, ver
+  "Acabado de sair: `Customer` e `Service` preenchidos" acima: `active`
+  guarda-se e sincroniza como uma string simples (`'true'`/`'false'`),
+  não um booleano a sério, sem checkbox, sem semântica true/false em
+  lado nenhum da stack. Uma ocorrência não chega para nos comprometermos
+  com uma forma ainda, `Product`/`Order`/`Customer` modelam todos o
+  status como uma coluna `Text` multi-valor em vez de um booleano, por
+  isso isto precisa de um segundo caso real antes de ser construído.
 - `BlueprintCompiler` / `CompiledBlueprint`: um único pipeline de
   compilação a resolver `uses()`, validar referências duplicadas e
   pendentes, e aplicar defaults implícitos, de modo a que Form, Table,
