@@ -153,6 +153,42 @@ both layouts, nothing duplicated). No relationship Field type yet
 dialog instead of the browser's native one, both still open, tracked
 below.
 
+**Just shipped: ADR-004 accepted, the Relation Field is fully specified**
+
+- All five open questions closed. `docs/adr/en/ADR-004-elo-relation-field.md`
+  (and the PT mirror) moved from Proposed to Accepted.
+- Syntax confirmed: `BelongsTo::make('customer')
+  ->resource(CustomerResource::class)->attribute('customer_id')
+  ->displayUsing('name')`, `displayUsing()` optional, defaults to the
+  literal `'name'` column, fails loud at compile/render time if absent
+  and undeclared, never a silent blank cell.
+- `elo:sync`: a `BelongsTo` produces `AddColumn` + a new `AddForeignKey`
+  operation, using Laravel's `foreignId()->constrained()`, additive-only
+  policy (D7) unchanged, `ColumnDefinition` stays constraint-unaware.
+- N+1: `RepositoryQuery` gains `whereIn()`, same non-frozen-contract
+  precedent `paginate()` already set, ships alongside `BelongsTo`, not
+  deferred, `ResourceTable` batches one query per page instead of one
+  per row.
+- Select options: v1 loads every related record via the existing
+  `Repository::query()`, no new mechanism, explicitly not the final
+  answer at scale, tracked for later.
+- `onDelete`: no API in v1, the FK ships with no `ON DELETE` clause,
+  which is `RESTRICT`/`NO ACTION` by default in MySQL/Postgres/SQLite,
+  safe by construction, no code needed. `cascade`/`setNull` tracked,
+  not built.
+- Cross-Module relations: resolved by the existing architecture, not
+  new work, `Module` has no runtime boundary to cross, `BelongsTo`
+  references a Resource by class-string.
+- Deferred, on purpose: `ResourceMetadata::displayField()` (a Resource
+  declaring its own default display attribute once), no real caller
+  exists yet to confirm the concept is needed.
+- Filament's `Select::relationship()` used as market reference for the
+  UX shape, not copied, Elo's declaration lives on the Field, informing
+  Form/Table/Sync from one source, instead of configuring on top of an
+  Eloquent relationship method written first.
+- Still no code. `src/Fields/BelongsTo.php`, `AddForeignKey`, and
+  `RepositoryQuery::whereIn()` are next.
+
 **Just shipped: `Customer` and `Service` filled out, validating the demo**
 
 - Not new Resources, `CustomerResource` and `ServiceResource` already

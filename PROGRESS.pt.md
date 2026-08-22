@@ -162,6 +162,45 @@ relação (`Order` não consegue declarar "pertence a Customer"), e sem uma
 caixa de confirmação com a marca do Elo em vez da nativa do browser,
 ambos ainda em aberto, registados abaixo.
 
+**Acabado de sair: ADR-004 aceite, o Field de Relação está totalmente especificado**
+
+- As cinco questões em aberto fechadas. `docs/adr/en/ADR-004-elo-relation-field.md`
+  (e o espelho em PT) passou de Proposta a Aceite.
+- Sintaxe confirmada: `BelongsTo::make('customer')
+  ->resource(CustomerResource::class)->attribute('customer_id')
+  ->displayUsing('name')`, `displayUsing()` opcional, com omissão para a
+  coluna literal `'name'`, falha alto ao compilar/renderizar se ausente
+  e não declarada, nunca uma célula em branco silenciosa.
+- `elo:sync`: um `BelongsTo` produz `AddColumn` + uma nova operação
+  `AddForeignKey`, usando o `foreignId()->constrained()` do Laravel,
+  política aditiva (D7) sem alteração, o `ColumnDefinition` mantém-se
+  sem conhecimento de constraints.
+- N+1: o `RepositoryQuery` ganha `whereIn()`, o mesmo precedente de
+  contrato não congelado que o `paginate()` já estabeleceu, sai junto
+  com o `BelongsTo`, não adiado, o `ResourceTable` agrupa uma query por
+  página em vez de uma por linha.
+- Opções do select: a v1 carrega todos os registos relacionados via o
+  `Repository::query()` já existente, nenhum mecanismo novo,
+  explicitamente não a resposta final em escala, registado para depois.
+- `onDelete`: nenhuma API na v1, a FK sai sem cláusula `ON DELETE`, que
+  é `RESTRICT`/`NO ACTION` por omissão em MySQL/Postgres/SQLite, seguro
+  por construção, sem código nenhum. `cascade`/`setNull` registados,
+  não construídos.
+- Relações entre Modules: resolvido pela arquitetura existente, nenhum
+  trabalho novo, o `Module` não tem fronteira em tempo de execução para
+  atravessar, o `BelongsTo` referencia uma Resource por class-string.
+- Adiado, de propósito: `ResourceMetadata::displayField()` (uma
+  Resource a declarar o seu próprio atributo de apresentação por
+  omissão uma vez), ainda não existe nenhum consumidor real para
+  confirmar que o conceito é preciso.
+- O `Select::relationship()` do Filament usado como referência de
+  mercado para a forma da UX, não copiado, a declaração do Elo vive no
+  Field, a informar Form/Table/Sync a partir de uma única fonte, em
+  vez de configurar em cima de um método de relação Eloquent escrito
+  primeiro.
+- Ainda nenhum código. `src/Fields/BelongsTo.php`, `AddForeignKey`, e
+  `RepositoryQuery::whereIn()` são os próximos.
+
 **Acabado de sair: `Customer` e `Service` preenchidos, a validar a demo**
 
 - Não são Resources novas, `CustomerResource` e `ServiceResource` já
