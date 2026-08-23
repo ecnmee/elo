@@ -162,6 +162,64 @@ relação (`Order` não consegue declarar "pertence a Customer"), e sem uma
 caixa de confirmação com a marca do Elo em vez da nativa do browser,
 ambos ainda em aberto, registados abaixo.
 
+**Acabado de sair: `BelongsTo`, `AddForeignKey`, `RepositoryQuery::whereIn()`**
+
+- `Ecnmee\Elo\Fields\BelongsTo`, o terceiro Field real e o primeiro cujo
+  valor é o registo de outra Resource. `BelongsTo::make('customer')
+  ->resource(CustomerResource::class)->attribute('customer_id')
+  ->displayUsing('name')`, exatamente a sintaxe que a ADR-004 aceitou. O
+  `attributeName()` sobrepõe a omissão do `Field` base para derivar
+  `{id}_id` (`customer` -> `customer_id`), não o id literal, o único
+  Field até agora onde essa sobreposição faz sentido. `displayUsing()`
+  opcional, com omissão para `'name'`. O `->resource()` é obrigatório,
+  não opcional, `resourceClass()`/`foreignKeyDefinition()` lançam
+  `LogicException` imediatamente se lidos antes de ser declarado, um
+  alvo de relação em falta é um erro de declaração, não um valor por
+  omissão para contornar em tempo de execução.
+- `Field::foreignKeyDefinition(): ?ForeignKeyDefinition`, `null` por
+  omissão, sobreposto só pelo `BelongsTo`. Deixa o `SchemaDiff`
+  genérico contra `Field`, sem nunca precisar de saber que o
+  `BelongsTo` existe como classe concreta, o mesmo padrão de emenda de
+  contrato que `Repository::table()` e `Field::attribute()` já usaram.
+- `Sync\ForeignKeyDefinition`, um objeto de valor simples (coluna,
+  coluna referenciada, tabela referenciada), e
+  `Sync\Operations\AddForeignKey`, a sua própria Operation,
+  deliberadamente não dobrada no `AddColumn`, ADR-004 §4.1. Usa
+  `foreign()->references()->on()`, não `constrained()`, já que esta
+  operação só adiciona a constraint, nunca a coluna.
+- O `SchemaDiff` acrescenta um `AddForeignKey` logo a seguir à operação
+  que cria a coluna (`CreateTable` ou `AddColumn`) para qualquer Field
+  cujo `foreignKeyDefinition()` não seja `null`. Política aditiva sem
+  alteração: uma coluna `customer_id` que já existisse antes de passar
+  a `BelongsTo` nunca ganha uma constraint adicionada depois, a mesma
+  lacuna de mudança de tipo que o `Number` já revelou, a mesma
+  limitação conhecida, não resolvida de forma diferente aqui, confirmado
+  por um teste novo. O `MigrationWriter` não precisou de nenhuma
+  alteração: a sua regra já existente de "ordem inversa" no `down()` já
+  elimina a constraint antes da coluna quando ambas estão a ser
+  removidas, o `down()` do `AddForeignKey` só cai depois do `AddColumn`
+  na lista invertida, de graça.
+- `RepositoryQuery::whereIn()`, ADR-004 §4.2, adicionado da mesma forma
+  que o `paginate()` se juntou à interface, quando um consumidor real
+  precisou, não por antecipação, o `RepositoryQuery` não está na lista
+  congelada da ADR-001 §5. O `EloquentRepositoryQuery` implementa-o
+  através do próprio `whereIn()` do Eloquent.
+- `resources/views/fields/belongs-to.blade.php`, um `<select>`, a
+  seguir o mesmo contrato de view que `Text`/`Number` já estabeleceram,
+  mais uma lista `$options` que a própria view não vai buscar, a ADR-004
+  §4.3 deixou isso para o chamador na v1.
+- Fixtures de teste novas, `TestAuthor`/`TestAuthorResource`, a dar ao
+  `BelongsTo` uma Resource relacionada real para apontar nos testes,
+  espelhando `TestPost`/`TestPostResource`.
+- **Deliberadamente ainda não feito:** ligar o `BelongsTo` ao
+  `ResourceForm`/`ResourceTable`, povoar `$options` a partir do próprio
+  Repository da Resource relacionada, agrupar `whereIn()` por página no
+  `ResourceTable` em vez de uma query por linha, resolver o valor de
+  apresentação. O `OrderResource` ainda não consegue declarar "pertence
+  a Customer" de ponta a ponta até isso sair, registado como próximo
+  passo, mantido à parte de propósito, esta mudança já era grande
+  o suficiente para rever como uma unidade.
+
 **Acabado de sair: ADR-004 aceite, o Field de Relação está totalmente especificado**
 
 - As cinco questões em aberto fechadas. `docs/adr/en/ADR-004-elo-relation-field.md`
@@ -495,14 +553,13 @@ ambos ainda em aberto, registados abaixo.
 
 **Adiado, registado, não implementado:**
 
-- Um Field de relação (`BelongsTo::make('customer', CustomerResource::class)`,
-  ADR-001, D3). Revelado pela demo de Business: `OrderResource` não
-  consegue declarar que uma Order pertence a um Customer ou a um
-  Product, só ficou com um `reference` de texto livre em vez disso.
-  Provavelmente a lacuna mais significativa que a demo encontrou até
-  agora, possivelmente a que faria o Elo exprimir dados relacionais a
-  sério, ainda não implementada porque a demo ainda não acabou de provar
-  exactamente que forma isto precisa de ter.
+- **Um Field de relação, parcialmente lançado.** `BelongsTo`,
+  `AddForeignKey`, e `RepositoryQuery::whereIn()` já existem, ver
+  "Acabado de sair: `BelongsTo`, `AddForeignKey`,
+  `RepositoryQuery::whereIn()`" acima. O que continua adiado: ligar isto
+  ao `ResourceForm`/`ResourceTable`, o `OrderResource` continua a usar
+  um `reference` de texto livre, ainda não consegue declarar "pertence
+  a Customer" de ponta a ponta.
 - ~~Um Field numérico.~~ Lançado, ver "Acabado de sair: o segundo Field
   real (`Number`)" acima.
 - Deteção de mudança de tipo no `SchemaDiff`. Confirmado ao lançar o

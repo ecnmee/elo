@@ -153,6 +153,59 @@ both layouts, nothing duplicated). No relationship Field type yet
 dialog instead of the browser's native one, both still open, tracked
 below.
 
+**Just shipped: `BelongsTo`, `AddForeignKey`, `RepositoryQuery::whereIn()`**
+
+- `Ecnmee\Elo\Fields\BelongsTo`, the third real Field and the first
+  whose value is another Resource's record. `BelongsTo::make('customer')
+  ->resource(CustomerResource::class)->attribute('customer_id')
+  ->displayUsing('name')`, exactly the syntax ADR-004 accepted.
+  `attributeName()` overrides the base Field's default to derive
+  `{id}_id` (`customer` -> `customer_id`), not the raw id, the only Field
+  so far where that override earns its keep. `displayUsing()` optional,
+  defaults to `'name'`. `->resource()` is required, not optional,
+  `resourceClass()`/`foreignKeyDefinition()` throw `LogicException`
+  immediately if read before it's declared, a missing relation target is
+  a declaration bug, not a runtime default to paper over.
+- `Field::foreignKeyDefinition(): ?ForeignKeyDefinition`, null by
+  default, overridden only by `BelongsTo`. Lets `SchemaDiff` stay
+  generic against `Field`, never needing to know `BelongsTo` exists as a
+  concrete class, same contract-amendment pattern `Repository::table()`
+  and `Field::attribute()` already used.
+- `Sync\ForeignKeyDefinition`, a plain value object (column, referenced
+  column, referenced table), and `Sync\Operations\AddForeignKey`, its
+  own Operation, deliberately not folded into `AddColumn`, ADR-004 §4.1.
+  Uses `foreign()->references()->on()`, not `constrained()`, since this
+  operation only ever adds the constraint, never the column.
+- `SchemaDiff` appends an `AddForeignKey` right after the column-creating
+  operation (`CreateTable` or `AddColumn`) for any Field whose
+  `foreignKeyDefinition()` isn't null. Additive-only policy unchanged: a
+  `customer_id` column that already existed before becoming a
+  `BelongsTo` never gets a constraint added after the fact, the exact
+  type-change gap `Number` already surfaced, same known limitation, not
+  solved differently here, confirmed by a new test.
+  `MigrationWriter` needed no changes at all: its existing "reverse
+  order" rule for `down()` already drops the constraint before the
+  column when both are being removed, `AddForeignKey`'s `down()` simply
+  lands after `AddColumn`'s in the reversed list, for free.
+- `RepositoryQuery::whereIn()`, ADR-004 §4.2, added the same way
+  `paginate()` joined the interface, once a real consumer needed it, not
+  by anticipation, `RepositoryQuery` isn't in ADR-001 §5's frozen list.
+  `EloquentRepositoryQuery` implements it via Eloquent's own `whereIn()`.
+- `resources/views/fields/belongs-to.blade.php`, a `<select>`, following
+  the same view contract `Text`/`Number` established, plus an `$options`
+  list the view itself does not fetch, ADR-004 §4.3 left that to the
+  caller for v1.
+- New test fixtures, `TestAuthor`/`TestAuthorResource`, giving `BelongsTo`
+  a real related Resource to point at in tests, mirroring
+  `TestPost`/`TestPostResource`.
+- **Deliberately not done yet:** wiring `BelongsTo` into
+  `ResourceForm`/`ResourceTable`, populating `$options` from the related
+  Resource's own Repository, batching `whereIn()` per page in
+  `ResourceTable` instead of one query per row, resolving the display
+  value. `OrderResource` still can't declare "belongs to Customer" end
+  to end until that lands, tracked as the next step, kept separate on
+  purpose, this change was already large enough to review as one unit.
+
 **Just shipped: ADR-004 accepted, the Relation Field is fully specified**
 
 - All five open questions closed. `docs/adr/en/ADR-004-elo-relation-field.md`
@@ -466,13 +519,12 @@ below.
 
 **Deferred, tracked, not implemented:**
 
-- A relationship Field type (`BelongsTo::make('customer', CustomerResource::class)`,
-  ADR-001, D3). Surfaced by the Business demo: `OrderResource` cannot
-  declare that an Order belongs to a Customer or a Product, it only got
-  a free-text `reference` field instead. Likely the most significant gap
-  the demo has found so far, arguably the one that would make Elo
-  express real relational data, not implemented yet because the demo
-  hasn't finished proving exactly what shape it needs.
+- **A relationship Field type, partially shipped.** `BelongsTo`,
+  `AddForeignKey`, and `RepositoryQuery::whereIn()` exist now, see "Just
+  shipped: `BelongsTo`, `AddForeignKey`, `RepositoryQuery::whereIn()`"
+  above. What's still deferred: wiring it into `ResourceForm`/
+  `ResourceTable`, `OrderResource` still uses a free-text `reference`
+  field, cannot declare "belongs to Customer" end to end yet.
 - ~~A numeric Field type.~~ Shipped, see "Just shipped: the second real
   Field (`Number`)" above.
 - `SchemaDiff` type-change detection. Confirmed by shipping `Number`:
