@@ -153,6 +153,44 @@ both layouts, nothing duplicated). No relationship Field type yet
 dialog instead of the browser's native one, both still open, tracked
 below.
 
+**Just shipped: `SyncCommand` describes `AddForeignKey` correctly**
+
+- Console output was `[orders] change orders` for the new foreign key,
+  `[orders] add column to orders` for the column, surfaced running
+  `elo:sync` against `OrderResource` for real (see the entry above).
+  `SyncCommand::describeOperation()` has a `match` naming each Operation
+  kind, `AddForeignKey` was added to the codebase alongside `BelongsTo`
+  but never given a case here, silently falling through to the generic
+  `default => 'change'`. Fixed: `AddForeignKey => 'add foreign key to'`,
+  matching `CreateTable`/`AddColumn`'s existing pattern exactly. The
+  migration file itself was always correct, this only fixed the label
+  printed while writing it.
+- New test asserts the exact line, `[test-articles] add foreign key to
+  test_articles`, so a future Operation added without a `describeOperation()`
+  case falls through to `'change'` loudly, in a failing test, not
+  silently in someone's terminal months later.
+
+**Just shipped: `OrderResource` declares real relations, closing the loop**
+
+- The demo's `OrderResource` now declares `BelongsTo::make('customer')
+  ->resource(CustomerResource::class)` and `BelongsTo::make('product')
+  ->resource(ProductResource::class)`, replacing nothing (`reference`,
+  `status`, `total` all stay), adding the two relations the very first
+  roadmap decision (`Product -> Customer -> Order`, at the top of this
+  file) named as the real test of the architecture.
+  `Order::$fillable` gained `customer_id`/`product_id`, `EloquentRepository::save()`
+  goes through `fill()`, a Field a Resource declares but the underlying
+  Eloquent model doesn't allow mass-assignment for is a silent no-op,
+  not an error, worth remembering for the next Resource that adds a
+  BelongsTo to an existing model.
+- Next `php artisan elo:sync` on `demo.elo` writes a real `AddColumn` +
+  `AddForeignKey` migration pair for each relation, the first time
+  `AddForeignKey` runs outside a test.
+- This was the last piece "Deliberately not done yet" from the previous
+  entry. ADR-004 is now exercised by a real application Resource, not
+  only package tests, `OrderResource` can finally declare "belongs to
+  Customer" the way ADR-001 D3 always meant it to.
+
 **Just shipped: `BelongsTo` wired into `ResourceForm`/`ResourceTable`**
 
 - `ResourceForm::optionsById()`: every `BelongsTo` field's `<select>`

@@ -162,6 +162,48 @@ relação (`Order` não consegue declarar "pertence a Customer"), e sem uma
 caixa de confirmação com a marca do Elo em vez da nativa do browser,
 ambos ainda em aberto, registados abaixo.
 
+**Acabado de sair: `SyncCommand` descreve o `AddForeignKey` correctamente**
+
+- O output da consola era `[orders] change orders` para a chave
+  estrangeira nova, `[orders] add column to orders` para a coluna,
+  revelado ao correr o `elo:sync` a sério contra o `OrderResource` (ver
+  a entrada acima). O `SyncCommand::describeOperation()` tem um `match`
+  que nomeia cada tipo de Operation, o `AddForeignKey` foi acrescentado
+  ao código junto com o `BelongsTo` mas nunca ganhou um caso aqui,
+  caindo em silêncio no `default => 'change'` genérico. Corrigido:
+  `AddForeignKey => 'add foreign key to'`, a seguir exactamente o mesmo
+  padrão que `CreateTable`/`AddColumn` já tinham. A migration em si
+  esteve sempre correcta, isto só corrigiu a etiqueta impressa ao
+  escrevê-la.
+- Teste novo confirma a linha exacta, `[test-articles] add foreign key
+  to test_articles`, para que uma Operation futura acrescentada sem um
+  caso no `describeOperation()` caia em `'change'` em voz alta, num
+  teste a falhar, não em silêncio no terminal de alguém meses depois.
+
+**Acabado de sair: `OrderResource` declara relações a sério, fecha o ciclo**
+
+- O `OrderResource` da demo declara agora `BelongsTo::make('customer')
+  ->resource(CustomerResource::class)` e `BelongsTo::make('product')
+  ->resource(ProductResource::class)`, sem substituir nada
+  (`reference`, `status`, `total` mantêm-se), acrescentando as duas
+  relações que a própria primeira decisão do roadmap (`Product ->
+  Customer -> Order`, no topo deste ficheiro) apontou como o teste real
+  da arquitectura.
+  O `Order::$fillable` ganhou `customer_id`/`product_id`, o
+  `EloquentRepository::save()` passa por `fill()`, um Field que uma
+  Resource declara mas para o qual o modelo Eloquent por baixo não
+  permite mass-assignment é um no-op silencioso, não um erro, vale a
+  pena lembrar para a próxima Resource que acrescente um `BelongsTo` a
+  um modelo já existente.
+- O próximo `php artisan elo:sync` no `demo.elo` escreve um par
+  `AddColumn` + `AddForeignKey` a sério para cada relação, a primeira
+  vez que o `AddForeignKey` corre fora de um teste.
+- Esta era a última peça "Deliberadamente ainda não feito" da entrada
+  anterior. A ADR-004 é agora exercitada por uma Resource de aplicação
+  real, não só pelos testes do package, o `OrderResource` consegue
+  finalmente declarar "pertence a Customer" da forma que a ADR-001 D3
+  sempre quis.
+
 **Acabado de sair: `BelongsTo` ligado ao `ResourceForm`/`ResourceTable`**
 
 - `ResourceForm::optionsById()`: cada `<select>` de um Field `BelongsTo`
