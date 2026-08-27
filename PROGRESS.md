@@ -153,6 +153,40 @@ both layouts, nothing duplicated). No relationship Field type yet
 dialog instead of the browser's native one, both still open, tracked
 below.
 
+**Just shipped: `elo-demo-app` gets a real README, logo, and a fixed em dash**
+
+- `elo-demo-app` had the stock, never-touched `laravel/laravel` README
+  until now. New `README.md` (English, default) and `README.pt.md`
+  (Portuguese), same logo and language-toggle convention `elo`/
+  `elo-monorepo` already use, `.github/assets/logo-{dark,light}.png`
+  copied over from those two repos rather than redrawn, one brand,
+  three repositories.
+- The README documents current state, not history: the four Resources
+  (`Product`, `Service`, `Customer`, `Order`), every Field type in use
+  today (`Text`, `Number`, `BelongsTo`), and calls out `Order` as the
+  first real `BelongsTo` usage outside the package's own tests. `BUILD.md`
+  (Portuguese, the original step by step build log) stays as history,
+  explicitly not the file kept current.
+- Flagged, not fixed: `composer.json`'s `path` repository entry for
+  `ecnmee/elo` is a hardcoded local Windows path, committed as-is to a
+  now-public repo, anyone else cloning it can't `composer install`
+  without editing that line first. Documented in the README's Getting
+  Started section as a known step, real fix is publishing `ecnmee/elo`
+  to Packagist and replacing the path repository with a version
+  constraint, tracked, not solved here.
+- One real em dash found in a shipped file, `resources/views/fields/belongs-to.blade.php`'s
+  empty-option placeholder, `—` in the `<option>`, replaced with a plain
+  `-`. Checked every file this session touched, `PROGRESS.md`/
+  `PROGRESS.pt.md`/ADR-004 were already clean, this was the only one.
+- Going forward: documentation is treated as living, updated in the
+  same change as the code it describes, not written once. This applies
+  across all three repositories, `elo-demo-app`'s README (what the demo
+  currently shows), `elo`'s guide/ADR docs (the public architecture
+  record), and `elo-monorepo`'s `PROGRESS.md`/`CONTRIBUTING.md` (the
+  private, developer-facing build log), each already following this
+  pattern to varying degrees, now named explicitly as the standard, not
+  left implicit.
+
 **Just shipped: `SyncCommand` describes `AddForeignKey` correctly**
 
 - Console output was `[orders] change orders` for the new foreign key,

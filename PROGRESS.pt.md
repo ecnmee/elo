@@ -162,6 +162,44 @@ relação (`Order` não consegue declarar "pertence a Customer"), e sem uma
 caixa de confirmação com a marca do Elo em vez da nativa do browser,
 ambos ainda em aberto, registados abaixo.
 
+**Acabado de sair: `elo-demo-app` ganha um README a sério, logo, e um travessão corrigido**
+
+- O `elo-demo-app` tinha o README de fábrica do `laravel/laravel`, nunca
+  tocado, até agora. `README.md` (inglês, predefinição) e `README.pt.md`
+  (português) novos, a mesma convenção de logo e alternância de idioma
+  que `elo`/`elo-monorepo` já usam, `.github/assets/logo-{dark,light}.png`
+  copiados desses dois repos em vez de redesenhados, uma marca, três
+  repositórios.
+- O README documenta o estado actual, não a história: as quatro
+  Resources (`Product`, `Service`, `Customer`, `Order`), cada tipo de
+  Field em uso hoje (`Text`, `Number`, `BelongsTo`), e assinala o
+  `Order` como o primeiro uso real do `BelongsTo` fora dos testes do
+  próprio package. O `BUILD.md` (em português, o registo original passo
+  a passo da construção) mantém-se como história, explicitamente não é
+  o ficheiro mantido actual.
+- Assinalado, não corrigido: a entrada `path` do repositório do
+  `ecnmee/elo` no `composer.json` é um caminho local do Windows escrito
+  directamente, comitado tal como está num repo agora público, mais
+  ninguém consegue `composer install` sem editar essa linha primeiro.
+  Documentado na secção "Getting Started" do README como um passo
+  conhecido, a correcção a sério é publicar o `ecnmee/elo` no Packagist
+  e substituir o path repository por uma versão normal, registado, não
+  resolvido aqui.
+- Um travessão longo real encontrado num ficheiro já publicado,
+  o placeholder da opção vazia em `resources/views/fields/belongs-to.blade.php`,
+  `—` no `<option>`, substituído por um `-` simples. Verificados todos
+  os ficheiros tocados nesta sessão, `PROGRESS.md`/`PROGRESS.pt.md`/a
+  ADR-004 já estavam limpos, este foi o único.
+- Daqui para a frente: a documentação passa a ser tratada como viva,
+  actualizada na mesma mudança que o código que descreve, não escrita
+  uma vez só. Isto aplica-se aos três repositórios: o README do
+  `elo-demo-app` (o que a demo mostra actualmente), a documentação de
+  guia/ADR do `elo` (o registo público de arquitectura), e o
+  `PROGRESS.md`/`CONTRIBUTING.md` do `elo-monorepo` (o registo de
+  construção privado, para developers), cada um já a seguir este padrão
+  em graus variados, agora nomeado explicitamente como a norma, não
+  deixado implícito.
+
 **Acabado de sair: `SyncCommand` descreve o `AddForeignKey` correctamente**
 
 - O output da consola era `[orders] change orders` para a chave
