@@ -153,6 +153,40 @@ both layouts, nothing duplicated). No relationship Field type yet
 dialog instead of the browser's native one, both still open, tracked
 below.
 
+**Just shipped: `BelongsTo` wired into `ResourceForm`/`ResourceTable`**
+
+- `ResourceForm::optionsById()`: every `BelongsTo` field's `<select>`
+  gets its options from the related Resource's own `Repository::query()
+  ->orderBy(displayAttribute)->get()`, ADR-004 §4.3, v1, no search or
+  pagination yet. Fails loud, ADR-004 §3: throws `LogicException` if a
+  related record doesn't have the declared `displayAttribute`, instead
+  of rendering an empty label.
+- `ResourceForm::rules()`: a `BelongsTo` field's validation rule gains
+  `|exists:{table},id` on top of required/nullable, closing the
+  "validation is the easy part" note from ADR-004 §4 (the original
+  open-questions draft).
+- `ResourceTable::displayValues()`: every `BelongsTo` column resolves to
+  the related record's display value, not the raw foreign key, via one
+  `whereIn()` per column against the related Resource's own Repository,
+  batching every row on the current page in a single query, ADR-004
+  §4.2. Same fail-loud rule as `optionsById()`. A dedicated test asserts
+  exactly one query against the related table per page, not one per
+  row, proving the N+1 the ADR was written to avoid doesn't happen.
+  Neither `resource-form.blade.php` nor `resource-table.blade.php`
+  needed to know `BelongsTo` exists, both just consume `$options`/
+  `$displayValues` the Livewire components already computed, the field
+  view contract (`$field`, `$value`, `$context`, `$error`, `$wireModel`,
+  now `$options`) stays the same shape every other Field already uses.
+- New fixtures, `TestArticle`/`TestArticleResource`, a `BelongsTo` to
+  `TestAuthorResource`, exercising the wiring end to end (form render,
+  save, validation, table display, batching) without touching
+  `TestPost`/`TestPostResource`, which several unrelated tests already
+  assert exact output against.
+- `OrderResource` in the demo still uses a free-text `reference` field,
+  not yet switched to `BelongsTo::make('customer')`, that's an
+  application-level change in `demo.elo`, not the package, tracked as
+  the next step.
+
 **Just shipped: `BelongsTo`, `AddForeignKey`, `RepositoryQuery::whereIn()`**
 
 - `Ecnmee\Elo\Fields\BelongsTo`, the third real Field and the first

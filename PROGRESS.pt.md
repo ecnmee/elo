@@ -162,6 +162,42 @@ relação (`Order` não consegue declarar "pertence a Customer"), e sem uma
 caixa de confirmação com a marca do Elo em vez da nativa do browser,
 ambos ainda em aberto, registados abaixo.
 
+**Acabado de sair: `BelongsTo` ligado ao `ResourceForm`/`ResourceTable`**
+
+- `ResourceForm::optionsById()`: cada `<select>` de um Field `BelongsTo`
+  recebe as suas opções a partir do próprio `Repository::query()
+  ->orderBy(displayAttribute)->get()` da Resource relacionada, ADR-004
+  §4.3, v1, ainda sem pesquisa nem paginação. Falha alto, ADR-004 §3:
+  lança `LogicException` se um registo relacionado não tiver o
+  `displayAttribute` declarado, em vez de renderizar uma etiqueta vazia.
+- `ResourceForm::rules()`: a regra de validação de um Field `BelongsTo`
+  ganha `|exists:{table},id` por cima de required/nullable, fechando a
+  nota "a validação é a parte fácil" da ADR-004 §4 (o rascunho original
+  das questões em aberto).
+- `ResourceTable::displayValues()`: cada coluna `BelongsTo` resolve para
+  o valor de apresentação do registo relacionado, não a chave
+  estrangeira em bruto, via um `whereIn()` por coluna contra o próprio
+  Repository da Resource relacionada, agrupando todas as linhas da
+  página actual numa única query, ADR-004 §4.2. Mesma regra de falha
+  alto que o `optionsById()`. Um teste dedicado confirma exactamente uma
+  query contra a tabela relacionada por página, não uma por linha,
+  provando que o N+1 que a ADR foi escrita para evitar não acontece.
+  Nem o `resource-form.blade.php` nem o `resource-table.blade.php`
+  precisaram de saber que o `BelongsTo` existe, ambos só consomem o
+  `$options`/`$displayValues` que os componentes Livewire já calcularam,
+  o contrato de view do Field (`$field`, `$value`, `$context`, `$error`,
+  `$wireModel`, agora `$options`) mantém-se a mesma forma que qualquer
+  outro Field já usa.
+- Fixtures novas, `TestArticle`/`TestArticleResource`, um `BelongsTo`
+  para `TestAuthorResource`, a exercitar a ligação de ponta a ponta
+  (render do formulário, guardar, validação, apresentação na tabela,
+  agrupamento) sem tocar em `TestPost`/`TestPostResource`, que vários
+  testes já não relacionados afirmam contra o output exacto.
+- O `OrderResource` na demo continua a usar um `reference` de texto
+  livre, ainda não trocado por `BelongsTo::make('customer')`, isso é
+  uma mudança ao nível da aplicação no `demo.elo`, não do package,
+  registado como próximo passo.
+
 **Acabado de sair: `BelongsTo`, `AddForeignKey`, `RepositoryQuery::whereIn()`**
 
 - `Ecnmee\Elo\Fields\BelongsTo`, o terceiro Field real e o primeiro cujo
