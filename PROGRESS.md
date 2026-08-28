@@ -153,6 +153,38 @@ both layouts, nothing duplicated). No relationship Field type yet
 dialog instead of the browser's native one, both still open, tracked
 below.
 
+**Just shipped: sidebar navigation, `Navigation`, built from Resources already declared**
+
+- `Ecnmee\Elo\Navigation::groups()` builds the whole sidebar straight
+  from every registered Resource's own `ResourceMetadata`,
+  `getLabel()`/`getPluralLabel()`/`getIcon()`/`getNavigationGroup()`,
+  four getters that existed since `ResourceMetadata` was written but had
+  no consumer until now, the same kind of dead-until-used gap `Number`
+  closed for price and `BelongsTo` closed for relations. Nothing new to
+  declare: the four demo Resources already call `->navigationGroup('Business')`,
+  the nav groups them correctly with zero changes to `demo.elo`.
+- `Module::menu()` stays exactly as it was, still unused, still
+  available for a future link that genuinely isn't tied to a Resource,
+  no such case exists yet (ADR-003, no ADR by anticipation), so
+  `Navigation` doesn't consult it.
+- Real trigger, not anticipation: PROGRESS.md had explicitly deferred
+  this ("the demo may reveal we need navigation because we have four
+  Resources"), and separately, this same session hit a person typing
+  `/elo/product/create` by hand and getting "resource not registered",
+  the exact friction a sidebar exists to remove.
+- New shared layout, `layouts/app.blade.php`, `pages/table.blade.php`
+  and `pages/form.blade.php` now `@extends` it instead of each
+  duplicating the full `<html>` document. `partials/navigation.blade.php`
+  renders the groups, highlighting the current Resource's link.
+  `.elo-nav`/`.elo-shell` CSS added to `elo.css`, same token variables
+  and BEM naming every other component already uses, including the
+  768px card-stack precedent's same responsive breakpoint.
+- Groups render in registration order (config first, then Modules),
+  the same "insertion order, not sorted" precedent `ModuleRegistry`
+  already set, not alphabetically. A Resource without `navigationGroup()`
+  renders under no heading at all, not an invented literal label like
+  "General" nobody declared.
+
 **Just shipped: `elo-demo-app` gets a real README, logo, and a fixed em dash**
 
 - `elo-demo-app` had the stock, never-touched `laravel/laravel` README

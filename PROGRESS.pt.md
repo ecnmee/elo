@@ -162,6 +162,41 @@ relação (`Order` não consegue declarar "pertence a Customer"), e sem uma
 caixa de confirmação com a marca do Elo em vez da nativa do browser,
 ambos ainda em aberto, registados abaixo.
 
+**Acabado de sair: navegação lateral, `Navigation`, construída a partir de Resources já declaradas**
+
+- `Ecnmee\Elo\Navigation::groups()` constrói toda a barra lateral
+  directamente a partir do próprio `ResourceMetadata` de cada Resource
+  registada, `getLabel()`/`getPluralLabel()`/`getIcon()`/`getNavigationGroup()`,
+  quatro getters que existiam desde que o `ResourceMetadata` foi escrito
+  mas nunca tinham consumidor até agora, o mesmo tipo de lacuna morta
+  até ser usada que o `Number` fechou para o preço e o `BelongsTo`
+  fechou para as relações. Nada novo para declarar: as quatro Resources
+  da demo já chamam `->navigationGroup('Business')`, a navegação
+  agrupa-as correctamente sem nenhuma mudança no `demo.elo`.
+- O `Module::menu()` mantém-se exactamente como estava, ainda por usar,
+  ainda disponível para um link futuro que genuinamente não esteja
+  ligado a uma Resource, nenhum caso desses existe ainda (ADR-003,
+  nenhuma ADR por antecipação), por isso o `Navigation` não o consulta.
+- Gatilho real, não antecipação: o `PROGRESS.md` já tinha adiado isto
+  explicitamente ("a demo pode revelar que precisamos de navegação
+  porque temos quatro Resources"), e, à parte, esta mesma sessão viu
+  uma pessoa a escrever `/elo/product/create` à mão e a receber
+  "resource not registered", exactamente a fricção que uma barra
+  lateral existe para eliminar.
+- Layout partilhado novo, `layouts/app.blade.php`, `pages/table.blade.php`
+  e `pages/form.blade.php` agora fazem `@extends` dele em vez de cada
+  um duplicar o documento `<html>` inteiro. O `partials/navigation.blade.php`
+  renderiza os grupos, realçando o link da Resource actual.
+  CSS `.elo-nav`/`.elo-shell` acrescentado ao `elo.css`, as mesmas
+  variáveis de tokens e nomenclatura BEM que qualquer outro componente
+  já usa, incluindo o mesmo breakpoint responsivo de 768px que o
+  precedente da tabela em cartões já estabeleceu.
+- Os grupos renderizam pela ordem de registo (config primeiro, depois
+  Modules), o mesmo precedente "ordem de inserção, não ordenado" que o
+  `ModuleRegistry` já tinha estabelecido, não alfabeticamente. Uma
+  Resource sem `navigationGroup()` renderiza sem nenhum título, não sob
+  um rótulo literal inventado como "General" que ninguém declarou.
+
 **Acabado de sair: `elo-demo-app` ganha um README a sério, logo, e um travessão corrigido**
 
 - O `elo-demo-app` tinha o README de fábrica do `laravel/laravel`, nunca
