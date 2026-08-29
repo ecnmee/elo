@@ -162,6 +162,92 @@ relação (`Order` não consegue declarar "pertence a Customer"), e sem uma
 caixa de confirmação com a marca do Elo em vez da nativa do browser,
 ambos ainda em aberto, registados abaixo.
 
+**Acabado de sair: polimento da navegação, logo, toggle de dark mode real, dois bugs reais corrigidos**
+
+- Dois bugs reais, encontrados ao olhar mesmo para a demo renderizada,
+  não por cobertura de testes: margem branca à volta do `.elo-shell` (o
+  `margin: 8px` por defeito do `body` do browser, nunca resetado, o
+  `elo.css` nunca toca em `body`/`html` de propósito, já que um package
+  Composer não é dono do documento que o hospeda, corrigido antes dentro
+  do próprio `layouts/app.blade.php`, que é dono da sua própria página
+  por inteiro). O `.elo-nav__link:hover` usava
+  `var(--elo-color-neutral-100)`, um valor cru da escala nunca
+  remapeado para dark mode (só os tokens semânticos são), por isso o
+  hover mantinha-se claro independentemente do tema, a chocar com o
+  texto em dark mode. Corrigido para `var(--elo-color-surface-raised)`,
+  já theme-aware.
+- O logo do próprio Elo aparece agora na barra lateral, trocado entre
+  dark/light via `<picture>`, a mesma técnica que os READMEs já usam.
+  Publicado através da tag `elo-assets` do `vendor:publish` já
+  existente, o `EloServiceProvider::publishes()` ganhou uma segunda
+  entrada, `resources/images` ao lado de `resources/css`, mesmo
+  destino, mesma tag, um único comando continua a publicar tudo.
+- Um toggle de dark mode a sério, a funcionar, numa topbar nova. Não é
+  uma funcionalidade inventada hoje, o `tokens.css` já tinha sido
+  explicitamente construído para isto ("a future theme toggle needs no
+  new tokens, only a way to set the [data-theme] attribute"), este é
+  esse toggle a chegar finalmente. Persiste via `localStorage`, aplica-se
+  antes do primeiro paint para evitar um flash claro-depois-escuro.
+- Um campo de pesquisa, um botão de idioma, e um avatar/nome de
+  utilizador também estão na topbar, explicitamente estáticos,
+  `disabled`, e comentados como tal no ficheiro Blade. Pedidos como uma
+  maquete visual, construídos como exactamente isso, nada ligado a um
+  motor de pesquisa, a um sistema de i18n, ou a um modelo User que não
+  existe, o Elo não é dono da autenticação e não deve assumir uma forma
+  para um.
+
+**Avaliado, não construído, registado para uma ADR futura cada um:**
+
+- **i18n completo (múltiplas línguas na UI).** Nenhuma string da UI da
+  framework está sequer extraída para tradução ainda ("Previous",
+  "Next", "Page X of Y", a mensagem de estado vazio). Construir suporte
+  para um número específico de línguas sem traduções reais por trás
+  seria exactamente a antecipação que as regras da ADR-003 proíbem.
+  Vale a pena fazer assim que o punhado de strings da própria framework
+  estiver inventariado, começando pelas duas línguas que este projecto
+  já usa em todo o lado (EN/PT), não um número arbitrário decidido à
+  partida.
+- **Sub-menus aninhados para muitas Resources.** Nenhum consumidor
+  registado, demo ou package, está sequer perto de precisar de mais do
+  que o único nível de agrupamento que o `navigationGroup()` já dá.
+  Registado, revisitado quando um caso real bater nesse teto.
+- **Ícones nos itens de menu.** Não precisa de nenhum código novo, o
+  `Navigation` já lê `ResourceMetadata::getIcon()`, as quatro Resources
+  da demo é que nunca chamam `->icon()`. Uma lacuna de conteúdo, não da
+  framework.
+- **Autorização: quem vê um item de menu, quem pode fazer uma operação
+  CRUD.** O item maior de todos os levantados, correctamente separado
+  da navegação simples ("gerir" vs "autorizar" são preocupações
+  diferentes). Deliberadamente não improvisado dentro do `Navigation`,
+  isto é território de uma ADR-005 à parte, a merecer o mesmo
+  tratamento de cinco questões em aberto que a ADR-004 teve antes de
+  qualquer código: forma da política, onde a verificação corre (Field,
+  Action, middleware de rota, os três), como compõe com o
+  `Action::visibleWhen()`, que já existe por outra razão e pode ser o
+  sítio errado para pendurar permissões.
+- **Um nível de acesso "master" vs "dev" que tranca que opções de
+  personalização um não-developer pode mudar.** Levantado a par da
+  autorização, e provavelmente a mesma funcionalidade subjacente em vez
+  de duas, um sistema de permissões já responde "quem pode mudar esta
+  definição" assim que existir. Construir um segundo mecanismo
+  paralelo primeiro significaria refazê-lo assim que a ADR de
+  autorização a sério aterrar.
+- **Configuração do Elo exportável e reutilizável entre projectos.**
+  Não existe um segundo projecto ainda para provar o que "reutilizável"
+  deveria sequer significar aqui. Registado, não desenhado.
+- **Um sistema de backup construído dentro do próprio Elo.** Assinalado
+  como provavelmente fora do âmbito do que o Elo é, um construtor de
+  painel administrativo declarativo, não uma ferramenta de backup. O
+  `spatie/laravel-backup` já resolve isto para qualquer app Laravel
+  baseada em Eloquent, com ou sem Elo, construir um equivalente dentro
+  do `Ecnmee\Elo` também falharia o `CoreBoundaryTest` (o core só
+  depende de si mesmo, Illuminate, e Livewire) a menos que fosse buscar
+  um package de terceiros que o core não tem nada que ver com depender.
+- **Filtros e campos de pesquisa nas tabelas do `ResourceTable`.**
+  Trabalho futuro real, explicitamente opt-in por pedido ("a critério
+  do dev"). Nenhuma tabela na demo está sequer perto de ser grande o
+  suficiente para precisar disto ainda. Registado.
+
 **Acabado de sair: navegação lateral, `Navigation`, construída a partir de Resources já declaradas**
 
 - `Ecnmee\Elo\Navigation::groups()` constrói toda a barra lateral

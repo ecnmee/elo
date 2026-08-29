@@ -153,6 +153,84 @@ both layouts, nothing duplicated). No relationship Field type yet
 dialog instead of the browser's native one, both still open, tracked
 below.
 
+**Just shipped: navigation polish, logo, real dark mode toggle, two real bugs fixed**
+
+- Two real bugs, found by actually looking at the rendered demo, not by
+  test coverage: white margin around `.elo-shell` (the browser's default
+  8px `body` margin, never reset, elo.css deliberately never touches
+  `body`/`html` since a Composer package doesn't own the host document,
+  fixed instead inside `layouts/app.blade.php` itself, which does fully
+  own its own page). `.elo-nav__link:hover` used
+  `var(--elo-color-neutral-100)`, a raw scale value never remapped for
+  dark mode (only semantic tokens are), so hover stayed light-colored
+  regardless of theme, clashing with dark-mode text. Fixed to
+  `var(--elo-color-surface-raised)`, already theme-aware.
+- Elo's own logo now renders in the sidebar, dark/light swapped via
+  `<picture>`, same technique the READMEs already use. Published
+  through the existing `elo-assets` `vendor:publish` tag,
+  `EloServiceProvider::publishes()` gained a second entry,
+  `resources/images` alongside `resources/css`, same destination, same
+  tag, one command still publishes everything.
+- A real, working dark mode toggle button in a new topbar. Not a new
+  feature invented today, tokens.css was explicitly built for this
+  already ("a future theme toggle needs no new tokens, only a way to
+  set the [data-theme] attribute"), this is that toggle finally
+  arriving. Persists via `localStorage`, applies before first paint to
+  avoid a light-then-dark flash.
+- Search input, language button, and a user avatar/name also sit in the
+  topbar, explicitly static, `disabled`, and commented as such in the
+  Blade file. Requested as a visual mock, built as exactly that, nothing
+  wired to a search engine, an i18n system, or a User model that
+  doesn't exist, Elo doesn't own auth and shouldn't assume a shape for
+  one.
+
+**Evaluated, not built, tracked for a future ADR each:**
+
+- **Full i18n (multiple UI languages).** No framework UI strings are
+  even extracted for translation yet ("Previous", "Next", "Page X of
+  Y", the empty-state message). Building support for a specific
+  language count with no real translations behind it would be exactly
+  the anticipation ADR-003 rules against. Worth doing once the
+  framework's own handful of strings are inventoried, starting with the
+  two languages this project already uses throughout (EN/PT), not an
+  arbitrary count decided up front.
+- **Nested sub-menus for large Resource counts.** No registered demo or
+  package consumer has anywhere near enough Resources for
+  `navigationGroup()`'s single level of grouping to fall short yet.
+  Tracked, revisited once a real case hits that ceiling.
+- **Menu-item icons.** Needs no new code at all, `Navigation` already
+  reads `ResourceMetadata::getIcon()`, the demo's four Resources simply
+  never call `->icon()`. A content gap, not a framework gap.
+- **Authorization: who can see a menu item, who can perform a CRUD
+  operation.** The single biggest item raised, correctly separated from
+  plain navigation ("gerir" vs "autorizar" are different concerns).
+  Deliberately not improvised into `Navigation`, this is ADR-005
+  territory on its own, deserving the same five-open-questions
+  treatment ADR-004 got before any code: policy shape, where a check
+  runs (Field, Action, route middleware, all three), how it composes
+  with `Action::visibleWhen()`, which already exists for a different
+  reason and might be the wrong place to bolt permissions onto.
+- **A "master" vs "dev" access tier that locks which customization
+  options a non-developer can change.** Raised alongside authorization,
+  and likely the same underlying feature rather than two, a permission
+  system already answers "who can change this setting" once it exists.
+  Building a second, parallel mechanism first would mean redoing it
+  once the real authorization ADR lands.
+- **Exportable, reusable Elo configuration across projects.** No second
+  project exists yet to prove what "reusable" should even mean here.
+  Tracked, not designed.
+- **A backup system built into Elo itself.** Flagged as likely out of
+  scope for what Elo is, a declarative admin panel builder, not a
+  backup tool. `spatie/laravel-backup` already solves this for any
+  Eloquent-based Laravel app, Elo or not, building an equivalent inside
+  `Ecnmee\Elo` would also fail `CoreBoundaryTest` (the core only depends
+  on itself, Illuminate, and Livewire) unless it reached for a
+  third-party package the core has no business depending on.
+- **Table filters and search fields on `ResourceTable`.** Real, likely
+  future work, explicitly opt-in per the request ("a critério do dev").
+  No table in the demo is anywhere near large enough yet to need it.
+  Tracked.
+
 **Just shipped: sidebar navigation, `Navigation`, built from Resources already declared**
 
 - `Ecnmee\Elo\Navigation::groups()` builds the whole sidebar straight
