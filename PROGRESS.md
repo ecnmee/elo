@@ -153,6 +153,160 @@ both layouts, nothing duplicated). No relationship Field type yet
 dialog instead of the browser's native one, both still open, tracked
 below.
 
+**In progress: ADR-005, Authorization, opened for review, not accepted**
+
+- `docs/adr/en/ADR-005-elo-authorization.md` (and the PT mirror)
+  opened as a proposal, treating "gerir" (managing) and "autorizar"
+  (deciding who is allowed to) as the two distinct surfaces raised
+  earlier: navigation-level (`viewAny`, hides a Resource from the
+  sidebar entirely) and CRUD-level (`view`/`create`/`update`/`delete`
+  per record).
+- Recommends building directly on Laravel's own `Gate`/Policy layer,
+  not a new permissions system, `CoreBoundaryTest` (core only depends
+  on itself, Illuminate, Livewire) makes this close to the only option
+  available without adding a dependency the core boundary test would
+  reject.
+- Explicitly kept separate from `Action::visibleWhen()`, that hook is
+  data-driven (does this record's state make the action make sense),
+  authorization is actor-driven (is this user allowed to), the two
+  will often compose but naming them the same thing would hide that
+  they answer different questions.
+- Five open questions recorded, the first (how a custom `Action`
+  becomes actor-aware without quietly duplicating `visibleWhen()`)
+  blocks starting anywhere else, everything downstream depends on that
+  shape. Policy discovery, the no-Policy-registered default, bulk
+  action authorization, and API/Export compatibility are the other
+  four, none answered yet.
+- The "master vs dev" configuration-lock idea, raised alongside this
+  same request, explicitly kept out of this ADR, flagged as likely the
+  same underlying mechanism once authorization lands, not designed
+  together with it.
+- No code written. `src/Fields`, `ResourceController`, `ResourceTable`,
+  `Navigation` all wait for §4 to close, same discipline ADR-004 was
+  held to before `BelongsTo.php` existed.
+
+**Just shipped: real logo assets, replacing the AI-placeholder ones**
+
+- Logo sizing closed out, final values: image height `1.2rem`, wordmark
+  `calc(var(--elo-text-sm) * 1.8)`, `.elo-nav__logo` padding matching
+  `.elo-topbar`'s (`--elo-space-3`/`--elo-space-6`). Settled on explicit
+  literal values instead of compounding percentages partway through,
+  each further adjustment was harder to reason about than just naming
+  the size wanted.
+- Deliverable zips now carry a version suffix (`elo-monorepo-v1.zip`,
+  incrementing from here), several rounds of logo tweaks used
+  descriptive-but-unordered names, no way to tell which was newest at
+  a glance.
+
+- `logo-dark.png`/`logo-light.png` replaced entirely, source is the
+  actual brand mark now, not the AI-generated placeholder used since
+  the branding pass. Processed programmatically: background made
+  transparent, autocropped to the mark's own bounding box (the
+  leftover whitespace baked into the source PNG, not CSS `gap`, was
+  the real cause of the logo/wordmark spacing looking off no matter
+  how far the CSS gap was reduced), `logo-dark.png` (white lettering,
+  for the navy sidebar) recolored from the ink color to white per
+  pixel while leaving the blue accent stroke (`#3B36FC`-ish) untouched,
+  `logo-light.png` keeps the original navy ink, both otherwise
+  identical.
+- `.elo-nav__logo`: vertical padding reduced from matching
+  `.elo-topbar`'s (`--elo-space-3`) down to `--elo-space-1`, per
+  request. `border-bottom` removed entirely, no border-right existed
+  on this element to remove (that border belongs to `.elo-nav` itself,
+  the sidebar/content divider, left alone, flagged rather than guessed
+  at).
+- `.elo-table`'s outer `border` removed, `border-radius` +
+  `overflow: hidden` stay, so the rounded-corner clipping still works,
+  just without a visible stroke around it.
+
+**Just shipped: footer, and a process fix on my side**
+
+- Logo scaled back down 25% from the previous `+15%/+25%/+25%` step,
+  it read as too large once actually seen rendered. The gap between
+  the logo and the "Studio" wordmark also tightened, `--elo-space-2`
+  down to `--elo-space-1`, per request, to sit closer together.
+- A second process gap, same shape as the `view:clear` one above: the
+  commands given for the footer round left out `vendor:publish
+  --tag=elo-assets`, so the app kept serving the previously-published
+  `elo.css` no matter how many times `view:clear` ran, `view:clear`
+  only touches compiled Blade templates, not published package
+  assets, they're two separate steps and both are needed after any
+  CSS change. The standard sequence from here on:
+  `composer update ecnmee/elo` → `vendor:publish --tag=elo-assets
+  --force` → `view:clear`, every time, not trimmed down when a change
+  looks CSS-only.
+
+- New `.elo-footer`, copyright line + Terms/Privacy (placeholder links,
+  same honesty as the topbar's search/language/user chrome, no real
+  pages exist for them) + a real Documentation link, straight to
+  `github.com/ecnmee/elo`. `.elo-shell__main`'s existing `flex: 1 1
+  auto` pushes it to the bottom of the page on its own, no sticky-footer
+  trick needed.
+- Process note, not a code change: a `php artisan view:clear` instruction
+  got buried inside a parenthetical in prose instead of given as its
+  own command block, the person ran `cache:clear` instead (a different
+  cache entirely, doesn't touch compiled Blade views) and kept seeing
+  stale HTML. Every command from here on gets its own block, nothing
+  load-bearing left to prose.
+
+**Just shipped: branding pass, a real dark-mode bug, and demo icons**
+
+- Real bug found and fixed: `.elo-panel[data-theme='dark']` only matched
+  a panel carrying the attribute directly, `ResourceTable`/`ResourceForm`
+  each wrap their own content in their own `.elo-panel` (so they stay
+  embeddable standalone), so the manual toggle on the outer shell never
+  reached those nested panels, the unconditional base `.elo-panel` rule
+  kept re-asserting light values on them regardless of the toggle. This
+  is what made the table/pagination/Create button ignore dark mode.
+  Fixed with one added selector, `.elo-panel[data-theme='dark'] .elo-panel`,
+  covering any nesting depth. The automatic (`prefers-color-scheme`)
+  path never had this bug, only the manual override did.
+- `elo.css`'s `<link>` now carries a `?v={mtime}` query string, computed
+  from the published file's own last-modified time. Browsers were
+  caching the stylesheet aggressively enough that several rounds of
+  visual changes in this session needed a manual hard-refresh to even
+  see, this removes that step permanently, every `vendor:publish` that
+  actually changes the file busts the cache on its own.
+- Logo enlarged, a wordmark ("Studio") added beside it, always the
+  white-lettering `logo-dark.png` variant now, not swapped by
+  `prefers-color-scheme` (a leftover from before the sidebar background
+  became a fixed brand navy in both themes, the OS-preference swap no
+  longer meant anything once that background stopped changing with the
+  theme). Sized up further, compounding to `+15%/+25%/+25%` over the
+  original (an earlier `+50%` step was tried and reverted, it made the
+  logo taller than `.elo-topbar`, judged too large once the header row
+  padding was made to match the topbar's own, `.elo-nav__logo` no
+  longer forces a fixed height to stay level with the topbar,
+  `.elo-nav__logo`'s padding now equals `.elo-topbar`'s exactly, per
+  request, this does mean the two rows no longer line up in height,
+  the logo row is now taller by design, an intentional trade-off, not
+  an oversight). `.elo-nav__body` is new, holding the padding the
+  groups still need, separate from the header strip now.
+- Light-mode chrome: `.elo-nav`/`.elo-topbar` now use the brand navy
+  (`#07132F`, the same ink the logo itself uses) instead of white,
+  hardcoded in `elo.css` as a deliberate brand choice, not a themed
+  token, both dark-mode blocks in `tokens.css` reset it back to the
+  ordinary dark surface tokens, so dark mode is unaffected.
+- `partials/topbar-user.blade.php` extracted from the layout, on
+  purpose kept generic ("Guest", empty avatar) in the package. A
+  specific person's name and photo are per-project content, not
+  framework content, baking one developer's identity into the shipped
+  default would mean every other project installing Elo sees a
+  stranger in their own admin panel. `demo.elo` overrides it via
+  Laravel's own package view-override convention
+  (`resources/views/vendor/elo/partials/topbar-user.blade.php`), not a
+  new mechanism built for this.
+- Demo's four Resources gained `->icon()`. Confirmed previously that
+  `Navigation` already reads `getIcon()`, no framework code needed,
+  only content the demo had never declared.
+
+**Still evaluated, not built:** confirmed dark/light mode already
+follows the browser/OS preference automatically (`prefers-color-scheme`),
+overridden by the manual toggle once used, nothing new needed there.
+Search and filters on `ResourceTable` remain the same tracked, not
+designed, item from the previous entry, no table in the demo is close
+to needing them yet.
+
 **Just shipped: navigation polish, logo, real dark mode toggle, two real bugs fixed**
 
 - Two real bugs, found by actually looking at the rendered demo, not by

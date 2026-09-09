@@ -162,6 +162,167 @@ relação (`Order` não consegue declarar "pertence a Customer"), e sem uma
 caixa de confirmação com a marca do Elo em vez da nativa do browser,
 ambos ainda em aberto, registados abaixo.
 
+**Em curso: ADR-005, Autorização, aberta para revisão, ainda não aceite**
+
+- `docs/adr/en/ADR-005-elo-authorization.md` (e o espelho em PT) aberta
+  como proposta, a tratar "gerir" e "autorizar" como as duas
+  superfícies distintas já levantadas antes: ao nível da navegação
+  (`viewAny`, esconde uma Resource inteira da barra lateral) e ao nível
+  do CRUD (`view`/`create`/`update`/`delete` por registo).
+- Recomenda construir directamente em cima do próprio `Gate`/Policy do
+  Laravel, não um sistema de permissões novo, o `CoreBoundaryTest` (o
+  core só depende de si mesmo, Illuminate, Livewire) torna isto quase
+  a única opção disponível sem acrescentar uma dependência que esse
+  teste de arquitectura rejeitaria.
+- Mantido explicitamente separado do `Action::visibleWhen()`, esse
+  hook é guiado pelos dados (o estado deste registo faz a acção fazer
+  sentido), a autorização é guiada pelo actor (este utilizador tem
+  permissão), os dois vão muitas vezes compor-se mas dar-lhes o mesmo
+  nome esconderia que respondem a perguntas diferentes.
+- Cinco questões em aberto registadas, a primeira (como é que uma
+  `Action` personalizada se torna consciente do actor sem duplicar em
+  silêncio o `visibleWhen()`) bloqueia começar por qualquer outro lado,
+  tudo a jusante depende dessa forma. Descoberta de Policy, a omissão
+  sem Policy registada, autorização de bulk actions, e compatibilidade
+  com API/Export são as outras quatro, nenhuma respondida ainda.
+- A ideia de trancar configurações "master vs dev", levantada a par
+  deste mesmo pedido, explicitamente mantida fora desta ADR,
+  assinalada como provavelmente o mesmo mecanismo subjacente assim que
+  a autorização aterrar, não desenhada junto com ela.
+- Nenhum código escrito. `src/Fields`, `ResourceController`,
+  `ResourceTable`, `Navigation` esperam todos o §4 fechar, a mesma
+  disciplina que a ADR-004 teve antes do `BelongsTo.php` existir.
+
+**Acabado de sair: assets reais do logo, a substituir os de placeholder gerados por IA**
+
+- Tamanho do logo fechado, valores finais: altura da imagem `1.2rem`,
+  wordmark a `calc(var(--elo-text-sm) * 1.8)`, padding do
+  `.elo-nav__logo` a bater certo com o `.elo-topbar`
+  (`--elo-space-3`/`--elo-space-6`). Assente em valores literais
+  explícitos em vez de percentagens compostas a meio do caminho, cada
+  ajuste seguinte era mais difícil de acompanhar do que simplesmente
+  nomear o tamanho pretendido.
+- Os zips entregues passam agora a ter um sufixo de versão
+  (`elo-monorepo-v1.zip`, a incrementar a partir daqui), várias rondas
+  de ajustes ao logo usaram nomes descritivos mas sem ordem, sem forma
+  de saber de relance qual era o mais recente.
+
+- `logo-dark.png`/`logo-light.png` substituídos por completo, a fonte
+  é agora a marca real, não o placeholder gerado por IA usado desde a
+  passagem de branding. Processado por programa: fundo tornado
+  transparente, recorte automático ao rectângulo delimitador da marca
+  em si (o espaço em branco que sobrava embutido no PNG original, não
+  o `gap` do CSS, era a causa real do espaçamento entre o logo e a
+  wordmark parecer estranho, por mais que se reduzisse o gap no CSS),
+  `logo-dark.png` (letras brancas, para a barra lateral azul-marinho)
+  recolorido pixel a pixel da cor de tinta para branco, deixando o
+  traço de destaque azul (`#3B36FC`-ish) intocado, `logo-light.png`
+  mantém a tinta navy original, os dois iguais fora disso.
+- `.elo-nav__logo`: padding vertical reduzido do que batia certo com o
+  `.elo-topbar` (`--elo-space-3`) para `--elo-space-1`, por pedido. O
+  `border-bottom` removido por completo, não existia nenhuma borda à
+  direita neste elemento para remover (essa borda pertence ao
+  `.elo-nav` em si, o divisor entre a barra lateral e o conteúdo,
+  deixado como está, assinalado em vez de adivinhado).
+- A `border` exterior do `.elo-table` removida, o `border-radius` +
+  `overflow: hidden` mantêm-se, por isso o recorte dos cantos
+  arredondados continua a funcionar, só sem o traço visível à volta.
+
+**Acabado de sair: footer, e uma correcção de processo do meu lado**
+
+- Logo reduzido 25% em relação ao passo anterior de `+15%/+25%/+25%`,
+  ficava grande demais assim que se viu mesmo renderizado. O espaço
+  entre o logo e a wordmark "Studio" também apertado,
+  `--elo-space-2` reduzido para `--elo-space-1`, por pedido, para
+  ficarem mais próximos.
+- Uma segunda falha de processo, da mesma forma que a do `view:clear`
+  acima: os comandos dados para a ronda do footer deixaram de fora o
+  `vendor:publish --tag=elo-assets`, por isso a app continuou a servir
+  o `elo.css` publicado anteriormente, não importa quantas vezes o
+  `view:clear` corresse, o `view:clear` só toca nos templates Blade
+  compilados, não nos assets do package já publicados, são dois passos
+  separados e os dois são precisos depois de qualquer mudança de CSS.
+  A sequência padrão a partir de agora: `composer update ecnmee/elo`
+  → `vendor:publish --tag=elo-assets --force` → `view:clear`, sempre,
+  não reduzida quando uma mudança parece ser só de CSS.
+
+- `.elo-footer` novo, linha de copyright + Terms/Privacy (links de
+  placeholder, a mesma honestidade que a chrome de pesquisa/idioma/
+  utilizador da topbar, não existem páginas reais para eles) + um link
+  de Documentation real, directo para `github.com/ecnmee/elo`. O
+  `flex: 1 1 auto` que o `.elo-shell__main` já tinha empurra-o sozinho
+  para o fundo da página, sem nenhum truque de sticky-footer.
+- Nota de processo, não uma mudança de código: uma instrução
+  `php artisan view:clear` ficou enterrada num parêntese no meio do
+  texto em vez de dada como o seu próprio bloco de comando, a pessoa
+  correu `cache:clear` em vez disso (uma cache completamente
+  diferente, não toca nas views Blade compiladas) e continuou a ver
+  HTML antigo. A partir de agora, cada comando fica no seu próprio
+  bloco, nada importante fica só em prosa.
+
+**Acabado de sair: passagem de branding, um bug real de dark mode, e ícones na demo**
+
+- Bug real encontrado e corrigido: `.elo-panel[data-theme='dark']` só
+  batia certo com um painel que tivesse o atributo directamente, o
+  `ResourceTable`/`ResourceForm` envolvem-se cada um no seu próprio
+  `.elo-panel` (para se manterem embutíveis sozinhos), por isso o
+  toggle manual na shell exterior nunca alcançava esses painéis
+  aninhados, a regra base incondicional do `.elo-panel` continuava a
+  reafirmar valores claros neles independentemente do toggle. Era isto
+  que fazia a tabela/paginação/botão Create ignorarem o dark mode.
+  Corrigido com um selector a mais,
+  `.elo-panel[data-theme='dark'] .elo-panel`, a cobrir qualquer
+  profundidade de aninhamento. O caminho automático
+  (`prefers-color-scheme`) nunca teve este bug, só a sobreposição
+  manual tinha.
+- `elo.css`'s `<link>` passa agora a ter uma query string `?v={mtime}`,
+  calculada a partir da última modificação do ficheiro publicado. O
+  browser estava a guardar o CSS em cache com tal agressividade que
+  várias rondas de mudanças visuais nesta sessão só se viam depois de
+  um hard-refresh manual, isto remove esse passo de vez, qualquer
+  `vendor:publish` que mude mesmo o ficheiro invalida a cache sozinho.
+- Logo aumentado, uma wordmark ("Studio") acrescentada ao lado, sempre
+  a variante com letras brancas do `logo-dark.png` agora, sem trocar
+  consoante o `prefers-color-scheme` (um resto de antes de o fundo da
+  barra lateral passar a ser azul-marinho fixo nos dois temas, a troca
+  por preferência do SO deixou de fazer sentido assim que esse fundo
+  parou de mudar com o tema). Aumentado mais, compondo `+15%/+25%/+25%`
+  sobre o original (um passo de `+50%` foi tentado e revertido, deixava
+  o logo mais alto que a `.elo-topbar`, considerado grande demais assim
+  que o padding da faixa de cabeçalho passou a bater certo com o da
+  topbar, o `.elo-nav__logo` já não força uma altura fixa para se
+  manter ao nível da topbar, o padding do `.elo-nav__logo` iguala agora
+  o do `.elo-topbar` exactamente, por pedido, isto significa que as
+  duas linhas já não se alinham em altura, a linha do logo é agora mais
+  alta de propósito, uma troca intencional, não um esquecimento). O
+  `.elo-nav__body` é novo, a guardar o padding que os grupos ainda
+  precisam, separado agora da faixa de cabeçalho.
+- Chrome em light-mode: `.elo-nav`/`.elo-topbar` usam agora o azul da
+  marca (`#07132F`, a mesma tinta que o próprio logo usa) em vez de
+  branco, escrito directamente no `elo.css` como escolha de marca
+  deliberada, não um token temático, os dois blocos de dark mode no
+  `tokens.css` repõem-no para os tokens normais da superfície escura,
+  por isso o dark mode não é afectado.
+- `partials/topbar-user.blade.php` extraído do layout, de propósito
+  mantido genérico ("Guest", avatar vazio) no package. O nome e a foto
+  de uma pessoa específica são conteúdo de projecto, não conteúdo de
+  framework, embutir a identidade de um developer na omissão publicada
+  significaria que qualquer outro projecto a instalar o Elo veria um
+  estranho no seu próprio painel administrativo. O `demo.elo` sobrepõe-o
+  através da própria convenção do Laravel para sobrepor views de
+  packages (`resources/views/vendor/elo/partials/topbar-user.blade.php`),
+  não um mecanismo novo construído para isto.
+- As quatro Resources da demo ganharam `->icon()`. Confirmado
+  anteriormente que o `Navigation` já lê `getIcon()`, nenhum código de
+  framework precisou, só conteúdo que a demo nunca tinha declarado.
+
+**Ainda avaliado, não construído:** confirmado que o dark/light mode já
+segue a preferência do browser/SO automaticamente
+(`prefers-color-scheme`), sobreposto pelo toggle manual assim que usado,
+nada de novo precisou aqui. Pesquisa e filtros no `ResourceTable`
+continuam o mesmo item registado, não desenhado, da entrada anterior,
+nenhuma tabela na demo está perto de precisar deles ainda.
+
 **Acabado de sair: polimento da navegação, logo, toggle de dark mode real, dois bugs reais corrigidos**
 
 - Dois bugs reais, encontrados ao olhar mesmo para a demo renderizada,
