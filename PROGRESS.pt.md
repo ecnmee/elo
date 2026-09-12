@@ -162,36 +162,36 @@ relação (`Order` não consegue declarar "pertence a Customer"), e sem uma
 caixa de confirmação com a marca do Elo em vez da nativa do browser,
 ambos ainda em aberto, registados abaixo.
 
-**Em curso: ADR-005, Autorização, aberta para revisão, ainda não aceite**
+**Em curso: ADR-005, primeira questão em aberto resolvida**
 
-- `docs/adr/en/ADR-005-elo-authorization.md` (e o espelho em PT) aberta
-  como proposta, a tratar "gerir" e "autorizar" como as duas
-  superfícies distintas já levantadas antes: ao nível da navegação
-  (`viewAny`, esconde uma Resource inteira da barra lateral) e ao nível
-  do CRUD (`view`/`create`/`update`/`delete` por registo).
-- Recomenda construir directamente em cima do próprio `Gate`/Policy do
-  Laravel, não um sistema de permissões novo, o `CoreBoundaryTest` (o
-  core só depende de si mesmo, Illuminate, Livewire) torna isto quase
-  a única opção disponível sem acrescentar uma dependência que esse
-  teste de arquitectura rejeitaria.
-- Mantido explicitamente separado do `Action::visibleWhen()`, esse
-  hook é guiado pelos dados (o estado deste registo faz a acção fazer
-  sentido), a autorização é guiada pelo actor (este utilizador tem
-  permissão), os dois vão muitas vezes compor-se mas dar-lhes o mesmo
-  nome esconderia que respondem a perguntas diferentes.
-- Cinco questões em aberto registadas, a primeira (como é que uma
-  `Action` personalizada se torna consciente do actor sem duplicar em
-  silêncio o `visibleWhen()`) bloqueia começar por qualquer outro lado,
-  tudo a jusante depende dessa forma. Descoberta de Policy, a omissão
-  sem Policy registada, autorização de bulk actions, e compatibilidade
-  com API/Export são as outras quatro, nenhuma respondida ainda.
-- A ideia de trancar configurações "master vs dev", levantada a par
-  deste mesmo pedido, explicitamente mantida fora desta ADR,
-  assinalada como provavelmente o mesmo mecanismo subjacente assim que
-  a autorização aterrar, não desenhada junto com ela.
-- Nenhum código escrito. `src/Fields`, `ResourceController`,
-  `ResourceTable`, `Navigation` esperam todos o §4 fechar, a mesma
-  disciplina que a ADR-004 teve antes do `BelongsTo.php` existir.
+- §4.1 fechado: a `Action` mantém-se sem conhecimento do actor, o
+  `ActionRunner` passa a ser a parte consciente do actor, ganha um
+  parâmetro explícito `actor: ?Authenticatable` a par de
+  `action`/`record`, verifica o Gate antes de chamar o handler,
+  protegendo uma chamada directa ao `ActionRunner`, não só o botão na
+  UI. O `visibleWhen()` mantém exactamente a sua forma actual, um
+  argumento, o registo, sem segundo hook, sem actor infiltrado no seu
+  callback.
+- §3.3 novo, a fechar uma lacuna real que a revisão revelou: os
+  registos do Elo circulam como arrays simples em todo o lado, as
+  Policies do Laravel são escritas por convenção contra o Model
+  Eloquent, passar um array directamente para o `Gate::authorize()`
+  partiria em silêncio uma Policy escrita da forma normal. Resolução:
+  o `Repository` ganha um `findModel($id): ?object` estreito, usado só
+  no ponto de chamada da autorização, o resto do contrato baseado em
+  arrays do Elo (Fields, linhas do `ResourceTable`, handlers de
+  `Action`) mantém-se exactamente como está.
+- Explicitamente ainda não construído: qualquer objecto
+  `ActionContext`/`ActorContext` a agrupar actor+registo+action. Os
+  três parâmetros nomeados do `ActionRunner::run()` chegam para o que
+  se sabe hoje, outra vez a regra da ADR-003 de nenhuma ADR por
+  antecipação.
+- Três questões continuam no §4.2 (descoberta de Policy, a omissão sem
+  Policy, bulk actions), nenhuma se bloqueia entre si nem bloqueia
+  começar a escrever código da forma que o §4.1 bloqueava, o
+  `API/Export` mantém-se uma restrição futura assinalada. Continua
+  Proposta no geral, não Aceite, mas já não bloqueada numa única
+  questão por resolver.
 
 **Acabado de sair: assets reais do logo, a substituir os de placeholder gerados por IA**
 

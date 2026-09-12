@@ -90,31 +90,71 @@ reach a route by URL that the sidebar already hid).
 
 `ResourceTable`'s Edit/Delete links, and any row `Action`, gain a
 per-record authorization check composed with (not replacing)
-`Action::visibleWhen()`:
+`Action::visibleWhen()`, resolved in §4 below: **`Action` stays actor-
+unaware, `ActionRunner` becomes the actor-aware party.**
 
 ```php
 Action::make('reactivate')
-    ->visibleWhen(fn ($record) => $record['status'] !== 'active')
-    // authorization is not a second visibleWhen(), see §4, still open
+    ->visibleWhen(fn ($record) => $record['status'] !== 'active');
+    // still exactly this, no second argument, no authorization here,
+    // ActionRunner checks the Gate separately, before calling the handler
 ```
 
-## 4. Open questions, not yet answered
+### 3.3 What the Gate actually authorizes against
 
-Recorded here so the ADR is honest about what "Accepted" would still
-leave undecided, not because any of these are answered.
+Elo's own data flows as plain arrays everywhere (`Repository::find():
+?array`, every record `ResourceTable`/`Action` ever sees is an array),
+Laravel Policies are conventionally written against the Eloquent Model
+(`update(User $user, Post $post)`), passing Elo's array straight to
+`Gate::authorize()` would silently break any Policy written the normal
+way. Resolution: `Repository` gains `findModel($id): ?object`, narrow,
+used only by the authorization call site (`ActionRunner`,
+`ResourceController`), the rest of Elo's contract (Fields,
+`ResourceTable`'s rows, `Action` handlers) stays array-based,
+unchanged. Not a general-purpose escape hatch back to Models, one
+method, one caller, kept that narrow on purpose.
 
-- **How does authorization actually attach to a custom `Action`?**
-  `visibleWhen()` takes the record, decides visibility from its data.
-  Authorization needs the acting user too, `Action` has no notion of
-  "who is running this" today, `ActionRunner` calls the handler
-  directly. Does `Action` gain a second, actor-aware method (risk:
-  two visibility hooks a Resource author has to remember to use
-  correctly, and to remember which is which), or does `visibleWhen()`'s
-  callback simply gain the current user as a second argument (risk:
-  quietly turns one hook into two responsibilities, the exact
-  conflation §2 argued against)? Neither answer is obviously right,
-  this is probably the single question worth resolving before any of
-  the rest.
+## 4. Open questions
+
+### 4.1 Resolved: how authorization attaches to a custom `Action`
+
+**`Action` does not become actor-aware. `ActionRunner` does.**
+
+`ActionRunner` already sits at the one place `action` and `record`
+already converge before the handler runs, adding `actor` there is
+completing a shape already half-built, not inventing a new one:
+
+```php
+$runner->run(
+    action: $action,
+    record: $record,
+    actor: $actor, // ?Authenticatable, null for a guest, Gate::forUser(null) already handles that
+);
+```
+
+Internally, `ActionRunner` resolves the record's model via
+`Repository::findModel()` (§3.3) and calls `Gate::forUser($actor)
+->authorize($action->id(), $model)` before invoking the handler, never
+after. This protects a direct call to `ActionRunner`, not only the UI
+button, `visibleWhen()` only ever decided whether the button renders,
+it was never the actual boundary.
+
+`visibleWhen()` keeps its exact existing shape and meaning, one
+argument, the record, a business-rule question. Authorization is a
+second, separate question, answered by the Gate, asked by
+`ActionRunner`, never folded into `visibleWhen()`'s callback. The two
+will often need to combine to decide whether a button finally shows
+(hidden if either says no), that composition happens where the button
+renders, not by merging the two questions into one hook.
+
+Deliberately not built yet: any `ActionContext`/`ActorContext` object
+bundling actor+record+action together. `ActionRunner::run()`'s three
+named parameters are enough for what's known today, a context object
+is exactly the kind of abstraction ADR-003 already warns against
+building before a second real shape proves it's needed.
+
+### 4.2 Still open
+
 - **Policy discovery.** Laravel auto-discovers a Policy from a Model
   class by naming convention. Does Elo rely on that entirely (a
   Resource with no discoverable Policy simply has no authorization,
@@ -160,7 +200,11 @@ leave undecided, not because any of these are answered.
 
 ## 6. Status
 
-Proposed. Not implemented. §4's first question, how a custom `Action`
-becomes actor-aware without quietly duplicating `visibleWhen()`, blocks
-starting anywhere else, everything downstream (`ResourceTable`'s Edit/
-Delete links, bulk actions) depends on that shape being settled first.
+Proposed, one question resolved. §4.1 is closed, `Action` stays actor-
+unaware, `ActionRunner` becomes the actor-aware party, §3.3's
+`findModel()` is what makes that resolution actually work against
+ordinary Laravel Policies. The three remaining items in §4.2, Policy
+discovery, the no-Policy default, and bulk actions, don't block each
+other and don't block implementation the way §4.1 did, they can be
+settled alongside the first real code, `API/Export` stays a flagged
+constraint, not a blocker.

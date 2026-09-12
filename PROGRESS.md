@@ -153,37 +153,32 @@ both layouts, nothing duplicated). No relationship Field type yet
 dialog instead of the browser's native one, both still open, tracked
 below.
 
-**In progress: ADR-005, Authorization, opened for review, not accepted**
+**In progress: ADR-005, first open question resolved**
 
-- `docs/adr/en/ADR-005-elo-authorization.md` (and the PT mirror)
-  opened as a proposal, treating "gerir" (managing) and "autorizar"
-  (deciding who is allowed to) as the two distinct surfaces raised
-  earlier: navigation-level (`viewAny`, hides a Resource from the
-  sidebar entirely) and CRUD-level (`view`/`create`/`update`/`delete`
-  per record).
-- Recommends building directly on Laravel's own `Gate`/Policy layer,
-  not a new permissions system, `CoreBoundaryTest` (core only depends
-  on itself, Illuminate, Livewire) makes this close to the only option
-  available without adding a dependency the core boundary test would
-  reject.
-- Explicitly kept separate from `Action::visibleWhen()`, that hook is
-  data-driven (does this record's state make the action make sense),
-  authorization is actor-driven (is this user allowed to), the two
-  will often compose but naming them the same thing would hide that
-  they answer different questions.
-- Five open questions recorded, the first (how a custom `Action`
-  becomes actor-aware without quietly duplicating `visibleWhen()`)
-  blocks starting anywhere else, everything downstream depends on that
-  shape. Policy discovery, the no-Policy-registered default, bulk
-  action authorization, and API/Export compatibility are the other
-  four, none answered yet.
-- The "master vs dev" configuration-lock idea, raised alongside this
-  same request, explicitly kept out of this ADR, flagged as likely the
-  same underlying mechanism once authorization lands, not designed
-  together with it.
-- No code written. `src/Fields`, `ResourceController`, `ResourceTable`,
-  `Navigation` all wait for §4 to close, same discipline ADR-004 was
-  held to before `BelongsTo.php` existed.
+- §4.1 closed: `Action` stays actor-unaware, `ActionRunner` becomes
+  the actor-aware party, gains an explicit `actor: ?Authenticatable`
+  parameter alongside `action`/`record`, checks the Gate before
+  calling the handler, protecting a direct call to `ActionRunner`, not
+  only the UI button. `visibleWhen()` keeps its exact existing shape,
+  one argument, the record, no second hook, no actor smuggled into its
+  callback.
+- New §3.3, closing a real gap the review surfaced: Elo's records flow
+  as plain arrays everywhere, Laravel Policies are conventionally
+  written against the Eloquent Model, passing an array straight to
+  `Gate::authorize()` would silently break an ordinarily-written
+  Policy. Resolution: `Repository` gains a narrow `findModel($id):
+  ?object`, used only by the authorization call site, the rest of
+  Elo's array-based contract (Fields, `ResourceTable` rows, `Action`
+  handlers) stays exactly as it is.
+- Explicitly still not built: any `ActionContext`/`ActorContext`
+  object bundling actor+record+action, `ActionRunner::run()`'s three
+  named parameters are enough for what's known today, ADR-003's
+  no-ADR-by-anticipation rule again.
+- Three questions remain in §4.2 (Policy discovery, the no-Policy
+  default, bulk actions), none block each other or block starting
+  code the way §4.1 did, `API/Export` stays a flagged future
+  constraint. Still Proposed overall, not Accepted, but no longer
+  blocked on a single unresolved question.
 
 **Just shipped: real logo assets, replacing the AI-placeholder ones**
 

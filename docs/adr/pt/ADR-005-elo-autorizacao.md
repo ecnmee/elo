@@ -94,32 +94,76 @@ rota que a barra lateral já escondeu).
 
 Os links Edit/Delete do `ResourceTable`, e qualquer `Action` de linha,
 ganham uma verificação de autorização por registo, composta com (não a
-substituir) o `Action::visibleWhen()`:
+substituir) o `Action::visibleWhen()`, resolvido no §4 abaixo: **a
+`Action` mantém-se sem conhecimento do actor, o `ActionRunner` passa a
+ser a parte consciente do actor.**
 
 ```php
 Action::make('reactivate')
-    ->visibleWhen(fn ($record) => $record['status'] !== 'active')
-    // autorização não é um segundo visibleWhen(), ver §4, ainda em aberto
+    ->visibleWhen(fn ($record) => $record['status'] !== 'active');
+    // continua exactamente assim, sem segundo argumento, nenhuma
+    // autorização aqui, o ActionRunner verifica o Gate em separado,
+    // antes de chamar o handler
 ```
 
-## 4. Questões em aberto, ainda não respondidas
+### 3.3 Contra o que é que o Gate autoriza mesmo
 
-Registadas aqui para a ADR ser honesta sobre o que "Aceite" ainda
-deixaria por decidir, não porque alguma delas esteja respondida.
+Os dados do próprio Elo circulam como arrays simples em todo o lado
+(`Repository::find(): ?array`, todo registo que o `ResourceTable`/
+`Action` alguma vez vê é um array), as Policies do Laravel são
+escritas por convenção contra o Model Eloquent (`update(User $user,
+Post $post)`), passar o array do Elo directamente para o
+`Gate::authorize()` partiria em silêncio qualquer Policy escrita da
+forma normal. Resolução: o `Repository` ganha `findModel($id): ?object`,
+estreito, usado só pelo ponto de chamada da autorização (`ActionRunner`,
+`ResourceController`), o resto do contrato do Elo (Fields, as linhas
+do `ResourceTable`, os handlers de `Action`) mantém-se baseado em
+arrays, sem alteração. Não é uma via de escape genérica de volta para
+Models, um método, um chamador, mantido estreito de propósito.
 
-- **Como é que a autorização se liga mesmo a uma `Action` personalizada?**
-  O `visibleWhen()` recebe o registo, decide a visibilidade a partir
-  dos seus dados. A autorização também precisa do utilizador actor,
-  a `Action` não tem noção nenhuma de "quem está a correr isto" hoje,
-  o `ActionRunner` chama o handler directamente. A `Action` ganha um
-  segundo método, consciente do actor (risco: dois hooks de
-  visibilidade que um autor de Resource tem de se lembrar de usar
-  correctamente, e de lembrar qual é qual), ou o callback do
-  `visibleWhen()` simplesmente ganha o utilizador actual como segundo
-  argumento (risco: transforma silenciosamente um hook em duas
-  responsabilidades, exactamente a confusão que o §2 argumentou
-  contra)? Nenhuma resposta é obviamente certa, esta é provavelmente a
-  única questão que vale a pena resolver antes de todo o resto.
+## 4. Questões em aberto
+
+### 4.1 Resolvida: como a autorização se liga a uma `Action` personalizada
+
+**A `Action` não se torna consciente do actor. O `ActionRunner` torna-se.**
+
+O `ActionRunner` já é o único sítio onde `action` e `record` já
+convergem antes do handler correr, acrescentar `actor` ali é completar
+uma forma já meio construída, não inventar uma nova:
+
+```php
+$runner->run(
+    action: $action,
+    record: $record,
+    actor: $actor, // ?Authenticatable, null para um guest, o Gate::forUser(null) já lida bem com isso
+);
+```
+
+Internamente, o `ActionRunner` resolve o model do registo via
+`Repository::findModel()` (§3.3) e chama `Gate::forUser($actor)
+->authorize($action->id(), $model)` antes de invocar o handler, nunca
+depois. Isto protege uma chamada directa ao `ActionRunner`, não só o
+botão na UI, o `visibleWhen()` só alguma vez decidiu se o botão
+renderiza, nunca foi a fronteira real.
+
+O `visibleWhen()` mantém exactamente a sua forma e significado actuais,
+um argumento, o registo, uma questão de regra de negócio. A
+autorização é uma segunda questão, separada, respondida pelo Gate,
+perguntada pelo `ActionRunner`, nunca dobrada dentro do callback do
+`visibleWhen()`. As duas vão muitas vezes precisar de se combinar para
+decidir se um botão finalmente aparece (escondido se qualquer uma
+disser não), essa composição acontece onde o botão renderiza, não ao
+fundir as duas perguntas num único hook.
+
+Deliberadamente não construído ainda: qualquer objecto
+`ActionContext`/`ActorContext` a agrupar actor+registo+action juntos.
+Os três parâmetros nomeados do `ActionRunner::run()` chegam para o que
+se sabe hoje, um objecto de contexto é exactamente o tipo de
+abstracção contra a qual a ADR-003 já avisa, construída antes de uma
+segunda forma real provar que é precisa.
+
+### 4.2 Ainda em aberto
+
 - **Descoberta de Policy.** O Laravel descobre automaticamente uma
   Policy a partir de uma classe Model por convenção de nome. O Elo
   confia nisso por completo (uma Resource sem Policy descobrível
@@ -170,8 +214,12 @@ deixaria por decidir, não porque alguma delas esteja respondida.
 
 ## 6. Estado
 
-Proposta. Não implementada. A primeira questão do §4, como é que uma
-`Action` personalizada se torna consciente do actor sem duplicar em
-silêncio o `visibleWhen()`, bloqueia começar por qualquer outro lado,
-tudo o resto a jusante (links Edit/Delete do `ResourceTable`, bulk
-actions) depende dessa forma estar assente primeiro.
+Proposta, uma questão resolvida. O §4.1 está fechado, a `Action`
+mantém-se sem conhecimento do actor, o `ActionRunner` passa a ser a
+parte consciente do actor, o `findModel()` do §3.3 é o que torna essa
+resolução realmente funcionar contra Policies normais do Laravel. Os
+três itens restantes no §4.2, descoberta de Policy, a omissão sem
+Policy, e bulk actions, não se bloqueiam entre si nem bloqueiam a
+implementação da forma que o §4.1 bloqueava, podem ser resolvidos a
+par do primeiro código a sério, o `API/Export` mantém-se uma restrição
+assinalada, não um bloqueio.
