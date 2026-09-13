@@ -175,13 +175,26 @@ segunda forma real provar que é precisa.
   uma sobreposição quando a Policy de uma Resource real não conseguir
   ser encontrada por convenção, o mesmo precedente de "lançar o
   subconjunto honesto" que o `Number` e o `BelongsTo` seguiram os dois.
-- **O que acontece sem nenhuma Policy.** Uma Resource cujo Model não
-  tem nenhuma Policy registada, o `Gate::denies()` devolve `false`
-  (permitido) pela omissão do próprio Laravel, o que significa que uma
-  demo sem autenticação e sem nenhuma Policy configurada continua a
-  comportar-se exactamente como hoje, sem regressão, mas vale a pena
-  afirmar isto explicitamente em vez de deixar para descobrir por
-  surpresa.
+- **O que acontece sem nenhuma Policy.** Resolvido, e corrigido contra
+  o comportamento real, não contra o pressuposto anterior. Verificado
+  directamente no `Illuminate\Auth\Access\Gate`: uma Resource cujo
+  Model não tem nenhuma Policy registada **não** permite por omissão.
+  O `Gate::resolveAuthCallback()` cai num callback que devolve `null`
+  quando nem uma Policy nem uma ability definida no gate coincidem, e
+  o `Gate::inspect()` trata esse `null` como negado — o oposto do que
+  esta ADR tinha assumido aqui. Uma chamada a `Gate::authorize()` sem
+  guarda nenhuma no `ActionRunner` teria portanto negado toda a acção
+  em toda a Resource assim que isto fosse lançado, incluindo a demo
+  sem autenticação, uma regressão real que a ADR queria evitar.
+
+  A correcção: o `ActionRunner` só chama o Gate quando
+  `Gate::getPolicyFor($model)` encontra mesmo uma Policy para a classe
+  do model. Nenhuma Policy registada continua a significar "sem
+  conceito de autorização para esta Resource", o comportamento de
+  hoje, genuinamente inalterado. Uma Policy que existe mas não tem
+  método para a ability dada continua a negar, correctamente, pela
+  omissão do próprio Laravel, essa parte da intenção original estava
+  certa.
 - **Bulk actions.** As bulk actions do `ResourceTable` correm contra
   todos os ids seleccionados. A autorização presumivelmente precisa de
   verificar cada registo, não só o primeiro, o que acontece quando
@@ -214,12 +227,17 @@ segunda forma real provar que é precisa.
 
 ## 6. Estado
 
-Proposta, uma questão resolvida. O §4.1 está fechado, a `Action`
+Proposta, duas questões resolvidas. O §4.1 está fechado, a `Action`
 mantém-se sem conhecimento do actor, o `ActionRunner` passa a ser a
 parte consciente do actor, o `findModel()` do §3.3 é o que torna essa
-resolução realmente funcionar contra Policies normais do Laravel. Os
-três itens restantes no §4.2, descoberta de Policy, a omissão sem
-Policy, e bulk actions, não se bloqueiam entre si nem bloqueiam a
+resolução realmente funcionar contra Policies normais do Laravel. A
+questão da omissão sem Policy no §4.2 também está fechada, corrigida
+contra o comportamento real de negar-por-omissão do `Gate`, e não
+contra o pressuposto anterior: o `ActionRunner` só autoriza quando
+existe mesmo uma Policy para o model, preservando o comportamento
+actual sem Policy sem depender de uma omissão que o Laravel na
+realidade não tem. Os dois itens restantes no §4.2, descoberta de
+Policy e bulk actions, não se bloqueiam entre si nem bloqueiam a
 implementação da forma que o §4.1 bloqueava, podem ser resolvidos a
 par do primeiro código a sério, o `API/Export` mantém-se uma restrição
 assinalada, não um bloqueio.

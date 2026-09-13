@@ -164,12 +164,26 @@ building before a second real shape proves it's needed.
   Laravel's own discovery first, adding an override only once a real
   Resource's Policy can't be found by convention, the same "ship the
   honest subset" precedent `Number` and `BelongsTo` both followed.
-- **What happens with no Policy at all.** A Resource whose Model has no
-  Policy registered, `Gate::denies()` returns `false` (allowed) by
-  Laravel's own default, meaning an unauthenticated demo with no
-  Policies configured keeps behaving exactly as it does today, no
-  regression, but worth stating explicitly rather than leaving it to
-  be discovered by surprise.
+- **What happens with no Policy at all.** Resolved, and corrected
+  against the real behavior, not the earlier assumption. Verified
+  against `Illuminate\Auth\Access\Gate`: a Resource whose Model has no
+  Policy registered does **not** default-allow.
+  `Gate::resolveAuthCallback()` falls through to a callback that
+  returns `null` when neither a Policy nor a gate-defined ability
+  matches, and `Gate::inspect()` treats that `null` as denied, the
+  opposite of what this ADR originally assumed here. An unguarded
+  `Gate::authorize()` call in `ActionRunner` would therefore have
+  denied every action on every Resource the moment this shipped,
+  including the unauthenticated demo, a real regression the ADR meant
+  to rule out.
+
+  The fix: `ActionRunner` only calls the Gate when
+  `Gate::getPolicyFor($model)` actually finds a Policy for the
+  model's class. No Policy registered still means "no authorization
+  concept for this Resource", today's behavior, genuinely unchanged.
+  A Policy that exists but has no method for the given ability still
+  denies, correctly, by Laravel's own default, that part of the
+  original intent was right.
 - **Bulk actions.** `ResourceTable`'s bulk actions run against every
   selected id. Authorization presumably needs to check every record,
   not just the first, what happens when some are authorized and others
@@ -200,11 +214,15 @@ building before a second real shape proves it's needed.
 
 ## 6. Status
 
-Proposed, one question resolved. §4.1 is closed, `Action` stays actor-
-unaware, `ActionRunner` becomes the actor-aware party, §3.3's
+Proposed, two questions resolved. §4.1 is closed, `Action` stays
+actor-unaware, `ActionRunner` becomes the actor-aware party, §3.3's
 `findModel()` is what makes that resolution actually work against
-ordinary Laravel Policies. The three remaining items in §4.2, Policy
-discovery, the no-Policy default, and bulk actions, don't block each
-other and don't block implementation the way §4.1 did, they can be
-settled alongside the first real code, `API/Export` stays a flagged
-constraint, not a blocker.
+ordinary Laravel Policies. §4.2's no-Policy question is also closed,
+corrected against `Gate`'s real default-deny behavior rather than the
+earlier assumption: `ActionRunner` only authorizes when a Policy
+actually exists for the model, preserving today's no-Policy behavior
+without relying on a default that Laravel doesn't actually have. The
+two remaining items in §4.2, Policy discovery and bulk actions, don't
+block each other and don't block implementation the way §4.1 did,
+they can be settled alongside the first real code, `API/Export` stays
+a flagged constraint, not a blocker.
