@@ -94,7 +94,7 @@ rota que a barra lateral já escondeu).
 
 Os links Edit/Delete do `ResourceTable`, e qualquer `Action` de linha,
 ganham uma verificação de autorização por registo, composta com (não a
-substituir) o `Action::visibleWhen()`, resolvido no §4 abaixo: **a
+substituir) o `Action::visibleWhen()`, resolvido na secção 4 abaixo: **a
 `Action` mantém-se sem conhecimento do actor, o `ActionRunner` passa a
 ser a parte consciente do actor.**
 
@@ -140,7 +140,7 @@ $runner->run(
 ```
 
 Internamente, o `ActionRunner` resolve o model do registo via
-`Repository::findModel()` (§3.3) e chama `Gate::forUser($actor)
+`Repository::findModel()` (secção 3.3) e chama `Gate::forUser($actor)
 ->authorize($action->id(), $model)` antes de invocar o handler, nunca
 depois. Isto protege uma chamada directa ao `ActionRunner`, não só o
 botão na UI, o `visibleWhen()` só alguma vez decidiu se o botão
@@ -200,7 +200,7 @@ segunda forma real provar que é precisa.
   verificar cada registo, não só o primeiro, o que acontece quando
   alguns estão autorizados e outros não, ignorar em silêncio os não
   autorizados, ou falhar o lote inteiro? Não desenhado aqui.
-- **API/Export.** A ADR-004 §3 já nomeou estes como consumidores
+- **API/Export.** A ADR-004 secção 3 já nomeou estes como consumidores
   futuros da declaração de um Field. O mesmo é verdade aqui, seja qual
   for a forma que a autorização tomar precisa de fazer sentido também
   para uma futura camada de API, não ser refeita quando uma chegar.
@@ -227,17 +227,17 @@ segunda forma real provar que é precisa.
 
 ## 6. Estado
 
-Proposta, duas questões resolvidas. O §4.1 está fechado, a `Action`
+Proposta, duas questões resolvidas. A secção 4.1 está fechada, a `Action`
 mantém-se sem conhecimento do actor, o `ActionRunner` passa a ser a
-parte consciente do actor, o `findModel()` do §3.3 é o que torna essa
+parte consciente do actor, o `findModel()` da secção 3.3 é o que torna essa
 resolução realmente funcionar contra Policies normais do Laravel. A
-questão da omissão sem Policy no §4.2 também está fechada, corrigida
+questão da omissão sem Policy na secção 4.2 também está fechada, corrigida
 contra o comportamento real de negar-por-omissão do `Gate`, e não
 contra o pressuposto anterior: o `ActionRunner` só autoriza quando
 existe mesmo uma Policy para o model, preservando o comportamento
 actual sem Policy sem depender de uma omissão que o Laravel na
-realidade não tem. Os dois itens restantes no §4.2, descoberta de
+realidade não tem. Os dois itens restantes na secção 4.2, descoberta de
 Policy e bulk actions, não se bloqueiam entre si nem bloqueiam a
-implementação da forma que o §4.1 bloqueava, podem ser resolvidos a
+implementação da forma que a secção 4.1 bloqueava, podem ser resolvidos a
 par do primeiro código a sério, o `API/Export` mantém-se uma restrição
 assinalada, não um bloqueio.

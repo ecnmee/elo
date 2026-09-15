@@ -155,14 +155,14 @@ below.
 
 **In progress: ADR-005, first open question resolved**
 
-- §4.1 closed: `Action` stays actor-unaware, `ActionRunner` becomes
+- Section 4.1 closed: `Action` stays actor-unaware, `ActionRunner` becomes
   the actor-aware party, gains an explicit `actor: ?Authenticatable`
   parameter alongside `action`/`record`, checks the Gate before
   calling the handler, protecting a direct call to `ActionRunner`, not
   only the UI button. `visibleWhen()` keeps its exact existing shape,
   one argument, the record, no second hook, no actor smuggled into its
   callback.
-- New §3.3, closing a real gap the review surfaced: Elo's records flow
+- New section 3.3, closing a real gap the review surfaced: Elo's records flow
   as plain arrays everywhere, Laravel Policies are conventionally
   written against the Eloquent Model, passing an array straight to
   `Gate::authorize()` would silently break an ordinarily-written
@@ -174,9 +174,9 @@ below.
   object bundling actor+record+action, `ActionRunner::run()`'s three
   named parameters are enough for what's known today, ADR-003's
   no-ADR-by-anticipation rule again.
-- Three questions remain in §4.2 (Policy discovery, the no-Policy
+- Three questions remain in section 4.2 (Policy discovery, the no-Policy
   default, bulk actions), none block each other or block starting
-  code the way §4.1 did, `API/Export` stays a flagged future
+  code the way section 4.1 did, `API/Export` stays a flagged future
   constraint. Still Proposed overall, not Accepted, but no longer
   blocked on a single unresolved question.
 
@@ -488,19 +488,19 @@ to needing them yet.
 
 - `ResourceForm::optionsById()`: every `BelongsTo` field's `<select>`
   gets its options from the related Resource's own `Repository::query()
-  ->orderBy(displayAttribute)->get()`, ADR-004 §4.3, v1, no search or
-  pagination yet. Fails loud, ADR-004 §3: throws `LogicException` if a
+  ->orderBy(displayAttribute)->get()`, ADR-004 section 4.3, v1, no search or
+  pagination yet. Fails loud, ADR-004 section 3: throws `LogicException` if a
   related record doesn't have the declared `displayAttribute`, instead
   of rendering an empty label.
 - `ResourceForm::rules()`: a `BelongsTo` field's validation rule gains
   `|exists:{table},id` on top of required/nullable, closing the
-  "validation is the easy part" note from ADR-004 §4 (the original
+  "validation is the easy part" note from ADR-004 section 4 (the original
   open-questions draft).
 - `ResourceTable::displayValues()`: every `BelongsTo` column resolves to
   the related record's display value, not the raw foreign key, via one
   `whereIn()` per column against the related Resource's own Repository,
   batching every row on the current page in a single query, ADR-004
-  §4.2. Same fail-loud rule as `optionsById()`. A dedicated test asserts
+  section 4.2. Same fail-loud rule as `optionsById()`. A dedicated test asserts
   exactly one query against the related table per page, not one per
   row, proving the N+1 the ADR was written to avoid doesn't happen.
   Neither `resource-form.blade.php` nor `resource-table.blade.php`
@@ -538,7 +538,7 @@ to needing them yet.
   and `Field::attribute()` already used.
 - `Sync\ForeignKeyDefinition`, a plain value object (column, referenced
   column, referenced table), and `Sync\Operations\AddForeignKey`, its
-  own Operation, deliberately not folded into `AddColumn`, ADR-004 §4.1.
+  own Operation, deliberately not folded into `AddColumn`, ADR-004 section 4.1.
   Uses `foreign()->references()->on()`, not `constrained()`, since this
   operation only ever adds the constraint, never the column.
 - `SchemaDiff` appends an `AddForeignKey` right after the column-creating
@@ -552,13 +552,13 @@ to needing them yet.
   order" rule for `down()` already drops the constraint before the
   column when both are being removed, `AddForeignKey`'s `down()` simply
   lands after `AddColumn`'s in the reversed list, for free.
-- `RepositoryQuery::whereIn()`, ADR-004 §4.2, added the same way
+- `RepositoryQuery::whereIn()`, ADR-004 section 4.2, added the same way
   `paginate()` joined the interface, once a real consumer needed it, not
-  by anticipation, `RepositoryQuery` isn't in ADR-001 §5's frozen list.
+  by anticipation, `RepositoryQuery` isn't in ADR-001 section 5's frozen list.
   `EloquentRepositoryQuery` implements it via Eloquent's own `whereIn()`.
 - `resources/views/fields/belongs-to.blade.php`, a `<select>`, following
   the same view contract `Text`/`Number` established, plus an `$options`
-  list the view itself does not fetch, ADR-004 §4.3 left that to the
+  list the view itself does not fetch, ADR-004 section 4.3 left that to the
   caller for v1.
 - New test fixtures, `TestAuthor`/`TestAuthorResource`, giving `BelongsTo`
   a real related Resource to point at in tests, mirroring

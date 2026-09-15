@@ -32,7 +32,7 @@ specification.
   same contract `Text` and `Number` already implement (`type()`, `view()`,
   lifecycle, context). Per ADR-003, that means it is not a new public
   concept and needs no vocabulary entry, exactly like `Text`/`Number`.
-- **Scope discipline.** ADR-001 §3.4 already deferred `Repeater` to its
+- **Scope discipline.** ADR-001 section 3.4 already deferred `Repeater` to its
   own ADR as "a different category of problem". A full relationship
   system (`BelongsTo`, `HasMany`, `HasOne`, `BelongsToMany`, polymorphic
   variants) is the same kind of category, this ADR proposes deciding
@@ -53,21 +53,21 @@ Relation::make('customer_id')
     ->resource(CustomerResource::class)
     ->displayUsing('name');
 
-// B: relationship-first, id/attribute split (ADR-001 §2)
+// B: relationship-first, id/attribute split (ADR-001 section 2)
 BelongsTo::make('customer')
     ->resource(CustomerResource::class)
     ->attribute('customer_id')
     ->displayUsing('name');
 ```
 
-**Recommendation: B.** It is the syntax ADR-001 §D3 already sketched, and
-it is the one that actually uses ADR-001 §2's central principle
+**Recommendation: B.** It is the syntax ADR-001 section D3 already sketched, and
+it is the one that actually uses ADR-001 section 2's central principle
 (identity separate from persistence): the Field's `id` is `customer`, the
 relationship as the Resource talks about it, `attribute` is `customer_id`,
 the column, diverging exactly the way `Text::make('seo_title')
-->attribute('title')` already diverges in ADR-001 §2's own example.
+->attribute('title')` already diverges in ADR-001 section 2's own example.
 `Relation::make('customer_id')` collapses that distinction back into one
-name, the thing ADR-001 §2 was written to avoid.
+name, the thing ADR-001 section 2 was written to avoid.
 
 `->attribute()` keeps the existing omission rule: unset, it derives
 `{id}_id` (`customer` -> `customer_id`), the common case stays as
@@ -78,7 +78,7 @@ genuinely diverges, same as every other Field.
 column on the related Resource, overridable
 (`->displayUsing('company_name')`) when it diverges. This is a
 convention, not a `ResourceMetadata` concept (a `displayField()` method
-on `ResourceMetadata` was considered and explicitly deferred, see §7),
+on `ResourceMetadata` was considered and explicitly deferred, see section 7),
 kept as a plain string default so the common case needs no extra
 declaration, the same shape `Field::attribute()` already uses. Deferred
 by design: nothing here is a copy of Filament's
@@ -117,7 +117,7 @@ alters or drops one, exactly like every other operation today.
 ### 4.2 N+1 on `ResourceTable`
 
 `RepositoryQuery` gains `whereIn(string $column, array $values): static`.
-Not a new frozen contract, per ADR-001 §5 only `Repository` is frozen,
+Not a new frozen contract, per ADR-001 section 5 only `Repository` is frozen,
 `RepositoryQuery` is not, and `paginate()` already joined this same
 interface after the fact "once ResourceTable was the real consumer that
 needed it, not by anticipation" (see its own docblock). `whereIn()` is
@@ -161,9 +161,9 @@ regardless of which Module, if any, declares it.
 - Nested/inline editing of the related record (creating a Customer from
   inside the Order form) is out of scope, `BelongsTo` selects an
   existing record only.
-- Searchable/paginated select options, tracked, not designed (§4.3).
+- Searchable/paginated select options, tracked, not designed (section 4.3).
 - `onDelete` policies beyond the database's own default, tracked, not
-  designed (§4.4).
+  designed (section 4.4).
 
 ## 6. On Filament as a reference, not a specification
 

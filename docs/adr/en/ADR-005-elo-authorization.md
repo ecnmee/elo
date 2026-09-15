@@ -90,7 +90,7 @@ reach a route by URL that the sidebar already hid).
 
 `ResourceTable`'s Edit/Delete links, and any row `Action`, gain a
 per-record authorization check composed with (not replacing)
-`Action::visibleWhen()`, resolved in §4 below: **`Action` stays actor-
+`Action::visibleWhen()`, resolved in section 4 below: **`Action` stays actor-
 unaware, `ActionRunner` becomes the actor-aware party.**
 
 ```php
@@ -133,7 +133,7 @@ $runner->run(
 ```
 
 Internally, `ActionRunner` resolves the record's model via
-`Repository::findModel()` (§3.3) and calls `Gate::forUser($actor)
+`Repository::findModel()` (section 3.3) and calls `Gate::forUser($actor)
 ->authorize($action->id(), $model)` before invoking the handler, never
 after. This protects a direct call to `ActionRunner`, not only the UI
 button, `visibleWhen()` only ever decided whether the button renders,
@@ -189,7 +189,7 @@ building before a second real shape proves it's needed.
   not just the first, what happens when some are authorized and others
   aren't, silently skip the unauthorized ones, or fail the whole batch?
   Not designed here.
-- **API/Export.** ADR-004 §3 already named these as future consumers of
+- **API/Export.** ADR-004 section 3 already named these as future consumers of
   a Field's declaration. The same is true here, whatever shape
   authorization takes needs to make sense for a future API layer too,
   not be reworked when one arrives. Not designed here, flagged so the
@@ -214,15 +214,15 @@ building before a second real shape proves it's needed.
 
 ## 6. Status
 
-Proposed, two questions resolved. §4.1 is closed, `Action` stays
-actor-unaware, `ActionRunner` becomes the actor-aware party, §3.3's
+Proposed, two questions resolved. Section 4.1 is closed, `Action` stays
+actor-unaware, `ActionRunner` becomes the actor-aware party, section 3.3's
 `findModel()` is what makes that resolution actually work against
-ordinary Laravel Policies. §4.2's no-Policy question is also closed,
+ordinary Laravel Policies. Section 4.2's no-Policy question is also closed,
 corrected against `Gate`'s real default-deny behavior rather than the
 earlier assumption: `ActionRunner` only authorizes when a Policy
 actually exists for the model, preserving today's no-Policy behavior
 without relying on a default that Laravel doesn't actually have. The
-two remaining items in §4.2, Policy discovery and bulk actions, don't
-block each other and don't block implementation the way §4.1 did,
+two remaining items in section 4.2, Policy discovery and bulk actions, don't
+block each other and don't block implementation the way section 4.1 did,
 they can be settled alongside the first real code, `API/Export` stays
 a flagged constraint, not a blocker.

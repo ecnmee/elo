@@ -164,7 +164,7 @@ ambos ainda em aberto, registados abaixo.
 
 **Em curso: ADR-005, primeira questão em aberto resolvida**
 
-- §4.1 fechado: a `Action` mantém-se sem conhecimento do actor, o
+- Secção 4.1 fechado: a `Action` mantém-se sem conhecimento do actor, o
   `ActionRunner` passa a ser a parte consciente do actor, ganha um
   parâmetro explícito `actor: ?Authenticatable` a par de
   `action`/`record`, verifica o Gate antes de chamar o handler,
@@ -172,7 +172,7 @@ ambos ainda em aberto, registados abaixo.
   UI. O `visibleWhen()` mantém exactamente a sua forma actual, um
   argumento, o registo, sem segundo hook, sem actor infiltrado no seu
   callback.
-- §3.3 novo, a fechar uma lacuna real que a revisão revelou: os
+- Secção 3.3 novo, a fechar uma lacuna real que a revisão revelou: os
   registos do Elo circulam como arrays simples em todo o lado, as
   Policies do Laravel são escritas por convenção contra o Model
   Eloquent, passar um array directamente para o `Gate::authorize()`
@@ -186,9 +186,9 @@ ambos ainda em aberto, registados abaixo.
   três parâmetros nomeados do `ActionRunner::run()` chegam para o que
   se sabe hoje, outra vez a regra da ADR-003 de nenhuma ADR por
   antecipação.
-- Três questões continuam no §4.2 (descoberta de Policy, a omissão sem
+- Três questões continuam na secção 4.2 (descoberta de Policy, a omissão sem
   Policy, bulk actions), nenhuma se bloqueia entre si nem bloqueia
-  começar a escrever código da forma que o §4.1 bloqueava, o
+  começar a escrever código da forma que a secção 4.1 bloqueava, o
   `API/Export` mantém-se uma restrição futura assinalada. Continua
   Proposta no geral, não Aceite, mas já não bloqueada numa única
   questão por resolver.
@@ -529,18 +529,18 @@ nenhuma tabela na demo está perto de precisar deles ainda.
 - `ResourceForm::optionsById()`: cada `<select>` de um Field `BelongsTo`
   recebe as suas opções a partir do próprio `Repository::query()
   ->orderBy(displayAttribute)->get()` da Resource relacionada, ADR-004
-  §4.3, v1, ainda sem pesquisa nem paginação. Falha alto, ADR-004 §3:
+  secção 4.3, v1, ainda sem pesquisa nem paginação. Falha alto, ADR-004 secção 3:
   lança `LogicException` se um registo relacionado não tiver o
   `displayAttribute` declarado, em vez de renderizar uma etiqueta vazia.
 - `ResourceForm::rules()`: a regra de validação de um Field `BelongsTo`
   ganha `|exists:{table},id` por cima de required/nullable, fechando a
-  nota "a validação é a parte fácil" da ADR-004 §4 (o rascunho original
+  nota "a validação é a parte fácil" da ADR-004 secção 4 (o rascunho original
   das questões em aberto).
 - `ResourceTable::displayValues()`: cada coluna `BelongsTo` resolve para
   o valor de apresentação do registo relacionado, não a chave
   estrangeira em bruto, via um `whereIn()` por coluna contra o próprio
   Repository da Resource relacionada, agrupando todas as linhas da
-  página actual numa única query, ADR-004 §4.2. Mesma regra de falha
+  página actual numa única query, ADR-004 secção 4.2. Mesma regra de falha
   alto que o `optionsById()`. Um teste dedicado confirma exactamente uma
   query contra a tabela relacionada por página, não uma por linha,
   provando que o N+1 que a ADR foi escrita para evitar não acontece.
@@ -582,7 +582,7 @@ nenhuma tabela na demo está perto de precisar deles ainda.
 - `Sync\ForeignKeyDefinition`, um objeto de valor simples (coluna,
   coluna referenciada, tabela referenciada), e
   `Sync\Operations\AddForeignKey`, a sua própria Operation,
-  deliberadamente não dobrada no `AddColumn`, ADR-004 §4.1. Usa
+  deliberadamente não dobrada no `AddColumn`, ADR-004 secção 4.1. Usa
   `foreign()->references()->on()`, não `constrained()`, já que esta
   operação só adiciona a constraint, nunca a coluna.
 - O `SchemaDiff` acrescenta um `AddForeignKey` logo a seguir à operação
@@ -597,15 +597,15 @@ nenhuma tabela na demo está perto de precisar deles ainda.
   elimina a constraint antes da coluna quando ambas estão a ser
   removidas, o `down()` do `AddForeignKey` só cai depois do `AddColumn`
   na lista invertida, de graça.
-- `RepositoryQuery::whereIn()`, ADR-004 §4.2, adicionado da mesma forma
+- `RepositoryQuery::whereIn()`, ADR-004 secção 4.2, adicionado da mesma forma
   que o `paginate()` se juntou à interface, quando um consumidor real
   precisou, não por antecipação, o `RepositoryQuery` não está na lista
-  congelada da ADR-001 §5. O `EloquentRepositoryQuery` implementa-o
+  congelada da ADR-001 secção 5. O `EloquentRepositoryQuery` implementa-o
   através do próprio `whereIn()` do Eloquent.
 - `resources/views/fields/belongs-to.blade.php`, um `<select>`, a
   seguir o mesmo contrato de view que `Text`/`Number` já estabeleceram,
   mais uma lista `$options` que a própria view não vai buscar, a ADR-004
-  §4.3 deixou isso para o chamador na v1.
+  secção 4.3 deixou isso para o chamador na v1.
 - Fixtures de teste novas, `TestAuthor`/`TestAuthorResource`, a dar ao
   `BelongsTo` uma Resource relacionada real para apontar nos testes,
   espelhando `TestPost`/`TestPostResource`.

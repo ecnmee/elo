@@ -36,7 +36,7 @@ especificação.
   (`type()`, `view()`, ciclo de vida, contexto). Segundo a ADR-003, isso
   significa que não é um conceito público novo e não precisa de entrada
   no vocabulário, exatamente como `Text`/`Number`.
-- **Disciplina de âmbito.** A ADR-001 §3.4 já adiou o `Repeater` para a
+- **Disciplina de âmbito.** A ADR-001 secção 3.4 já adiou o `Repeater` para a
   sua própria ADR como "uma categoria de problema diferente". Um sistema
   de relações completo (`BelongsTo`, `HasMany`, `HasOne`,
   `BelongsToMany`, variantes polimórficas) é o mesmo tipo de categoria,
@@ -57,21 +57,21 @@ Relation::make('customer_id')
     ->resource(CustomerResource::class)
     ->displayUsing('name');
 
-// B: relação primeiro, id/attribute separados (ADR-001 §2)
+// B: relação primeiro, id/attribute separados (ADR-001 secção 2)
 BelongsTo::make('customer')
     ->resource(CustomerResource::class)
     ->attribute('customer_id')
     ->displayUsing('name');
 ```
 
-**Recomendação: B.** É a sintaxe que a ADR-001 §D3 já esboçou, e é a que
-realmente usa o princípio central da ADR-001 §2 (identidade separada da
+**Recomendação: B.** É a sintaxe que a ADR-001 secção D3 já esboçou, e é a que
+realmente usa o princípio central da ADR-001 secção 2 (identidade separada da
 persistência): o `id` do Field é `customer`, a relação tal como a
 Resource fala dela, `attribute` é `customer_id`, a coluna, a divergir
 exatamente da mesma forma que `Text::make('seo_title')
-->attribute('title')` já diverge no próprio exemplo da ADR-001 §2. O
+->attribute('title')` já diverge no próprio exemplo da ADR-001 secção 2. O
 `Relation::make('customer_id')` colapsa essa distinção de volta a um
-único nome, precisamente o que a ADR-001 §2 foi escrita para evitar.
+único nome, precisamente o que a ADR-001 secção 2 foi escrita para evitar.
 
 O `->attribute()` mantém a regra de omissão já existente: sem
 declaração, deriva `{id}_id` (`customer` -> `customer_id`), o caso comum
@@ -83,7 +83,7 @@ O `->displayUsing()` é opcional, com omissão para a coluna literal
 (`->displayUsing('company_name')`) quando diverge. Isto é uma
 convenção, não um conceito no `ResourceMetadata` (um método
 `displayField()` no `ResourceMetadata` foi considerado e explicitamente
-adiado, ver §7), mantido como uma string simples por omissão para que o
+adiado, ver secção 7), mantido como uma string simples por omissão para que o
 caso comum não precise de declaração extra, a mesma forma que
 `Field::attribute()` já usa. Adiado por desenho: nada aqui é uma cópia
 do `Select::relationship('customer', 'name')` do Filament, a declaração
@@ -124,7 +124,7 @@ outra operação hoje.
 ### 4.2 N+1 no `ResourceTable`
 
 O `RepositoryQuery` ganha `whereIn(string $column, array $values): static`.
-Não é um contrato congelado novo, segundo a ADR-001 §5 só o `Repository`
+Não é um contrato congelado novo, segundo a ADR-001 secção 5 só o `Repository`
 está congelado, o `RepositoryQuery` não está, e o `paginate()` já se
 juntou a esta mesma interface depois do facto "once ResourceTable was
 the real consumer that needed it, not by anticipation" (ver o seu
@@ -174,9 +174,9 @@ Module, se algum, a declara.
   dentro do formulário da Order) está fora de âmbito, o `BelongsTo`
   só seleciona um registo já existente.
 - Opções de select pesquisáveis/paginadas, registado, não desenhado
-  (§4.3).
+  (secção 4.3).
 - Políticas de `onDelete` além da omissão da base de dados, registado,
-  não desenhado (§4.4).
+  não desenhado (secção 4.4).
 
 ## 6. Sobre o Filament como referência, não especificação
 
