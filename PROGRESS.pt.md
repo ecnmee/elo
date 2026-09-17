@@ -186,12 +186,17 @@ ambos ainda em aberto, registados abaixo.
   três parâmetros nomeados do `ActionRunner::run()` chegam para o que
   se sabe hoje, outra vez a regra da ADR-003 de nenhuma ADR por
   antecipação.
-- Três questões continuam na secção 4.2 (descoberta de Policy, a omissão sem
-  Policy, bulk actions), nenhuma se bloqueia entre si nem bloqueia
-  começar a escrever código da forma que a secção 4.1 bloqueava, o
-  `API/Export` mantém-se uma restrição futura assinalada. Continua
-  Proposta no geral, não Aceite, mas já não bloqueada numa única
-  questão por resolver.
+- As restantes questões da secção 4.2 também ficaram fechadas, numa
+  passagem posterior: a descoberta de Policy confia inteiramente no
+  próprio mecanismo do Laravel, sem nenhum `->policy()` acrescentado
+  ao `ResourceMetadata`; a omissão sem Policy foi corrigida contra o
+  comportamento real do `Gate` (nega por omissão, não permite, como se
+  tinha assumido inicialmente); as bulk actions abortam na primeira
+  negação, sem ignorar em silêncio nem assumir rollback para registos
+  cuja Action já correu. O `API/Export` mantém-se a única restrição
+  futura assinalada. Continua Proposta no geral, não Aceite; a
+  `Navigation` e o `ResourceController` já têm as verificações do Gate
+  correspondentes (secções 3.1/3.2).
 
 **Acabado de sair: assets reais do logo, a substituir os de placeholder gerados por IA**
 

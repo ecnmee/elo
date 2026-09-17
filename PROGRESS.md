@@ -174,11 +174,15 @@ below.
   object bundling actor+record+action, `ActionRunner::run()`'s three
   named parameters are enough for what's known today, ADR-003's
   no-ADR-by-anticipation rule again.
-- Three questions remain in section 4.2 (Policy discovery, the no-Policy
-  default, bulk actions), none block each other or block starting
-  code the way section 4.1 did, `API/Export` stays a flagged future
-  constraint. Still Proposed overall, not Accepted, but no longer
-  blocked on a single unresolved question.
+- Section 4.2's remaining questions are closed too, in a later pass:
+  Policy discovery relies entirely on Laravel's own mechanism, no
+  `->policy()` added to `ResourceMetadata`; the no-Policy default was
+  corrected against `Gate`'s real behavior (denies by default, not the
+  originally assumed allow); bulk actions abort on the first denial,
+  no silent skip, no rollback claimed for records an Action already
+  ran. `API/Export` stays the one flagged future constraint. Still
+  Proposed overall, not Accepted, `Navigation` and `ResourceController`
+  now carry the matching Gate checks (sections 3.1/3.2).
 
 **Just shipped: real logo assets, replacing the AI-placeholder ones**
 

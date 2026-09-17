@@ -164,16 +164,17 @@ segunda forma real provar que é precisa.
 
 ### 4.2 Ainda em aberto
 
-- **Descoberta de Policy.** O Laravel descobre automaticamente uma
-  Policy a partir de uma classe Model por convenção de nome. O Elo
-  confia nisso por completo (uma Resource sem Policy descobrível
-  simplesmente não tem autorização, a condizer com o comportamento
-  por omissão do próprio Laravel, aberto por omissão), ou a `Resource`
-  ganha uma declaração explícita `->policy()` no `ResourceMetadata`
-  para os casos que a convenção de nome não alcança? A inclinar para
-  confiar primeiro na descoberta do próprio Laravel, só acrescentando
-  uma sobreposição quando a Policy de uma Resource real não conseguir
-  ser encontrada por convenção, o mesmo precedente de "lançar o
+- **Descoberta de Policy.** Resolvido. O Elo confia inteiramente no
+  próprio mecanismo de descoberta de Policies do Laravel, tanto a
+  descoberta por convenção de nome como uma Policy registada
+  explicitamente via `Gate::policy()` pela aplicação consumidora. O
+  `ResourceMetadata` não ganha nenhuma declaração `->policy()` própria
+  nesta versão; o Elo não acrescenta uma segunda camada de descoberta
+  em cima da que o Laravel já tem. Isto preserva a fronteira correcta:
+  o Elo usa o Gate, a aplicação decide como as suas próprias Policies
+  são descobertas ou registadas. Rever só quando a Policy de uma
+  Resource real genuinamente não conseguir ser encontrada por
+  convenção nem por registo explícito, o mesmo precedente de "lançar o
   subconjunto honesto" que o `Number` e o `BelongsTo` seguiram os dois.
 - **O que acontece sem nenhuma Policy.** Resolvido, e corrigido contra
   o comportamento real, não contra o pressuposto anterior. Verificado
@@ -195,11 +196,22 @@ segunda forma real provar que é precisa.
   método para a ability dada continua a negar, correctamente, pela
   omissão do próprio Laravel, essa parte da intenção original estava
   certa.
-- **Bulk actions.** As bulk actions do `ResourceTable` correm contra
-  todos os ids seleccionados. A autorização presumivelmente precisa de
-  verificar cada registo, não só o primeiro, o que acontece quando
-  alguns estão autorizados e outros não, ignorar em silêncio os não
-  autorizados, ou falhar o lote inteiro? Não desenhado aqui.
+- **Bulk actions.** Resolvido: a primeira negação interrompe a
+  execução das restantes operações. A autorização é avaliada
+  individualmente por registo; uma negação lança a excepção normal do
+  Gate e o `runBulk()` não a apanha para filtrar em silêncio os
+  registos não autorizados. Esta versão não define nenhum rollback
+  para registos cuja Action já correu antes da negação, nem semântica
+  de sucesso parcial ("3 de 5 processados") — ambos continuam
+  genuinamente não desenhados, em vez de assumidos. Ignorar os
+  registos não autorizados e processar o resto foi considerado e
+  posto de parte: levanta de imediato perguntas a que esta versão não
+  consegue responder (a pessoa é informada de quais registos foram
+  ignorados, a tabela reflecte um resultado parcial, uma Action que
+  falhe a meio dos autorizados pára o resto), nenhuma delas uma
+  pergunta de autorização do Gate, todas elas desenho de produto/UX
+  que não é aqui o sítio para inventar, e o `ResourceTable` não tem
+  hoje, de qualquer forma, nenhum conceito de resultado parcial.
 - **API/Export.** A ADR-004 secção 3 já nomeou estes como consumidores
   futuros da declaração de um Field. O mesmo é verdade aqui, seja qual
   for a forma que a autorização tomar precisa de fazer sentido também
@@ -227,17 +239,18 @@ segunda forma real provar que é precisa.
 
 ## 6. Estado
 
-Proposta, duas questões resolvidas. A secção 4.1 está fechada, a `Action`
+Proposta, quatro questões resolvidas. A secção 4.1 está fechada, a `Action`
 mantém-se sem conhecimento do actor, o `ActionRunner` passa a ser a
 parte consciente do actor, o `findModel()` da secção 3.3 é o que torna essa
-resolução realmente funcionar contra Policies normais do Laravel. A
-questão da omissão sem Policy na secção 4.2 também está fechada, corrigida
-contra o comportamento real de negar-por-omissão do `Gate`, e não
-contra o pressuposto anterior: o `ActionRunner` só autoriza quando
-existe mesmo uma Policy para o model, preservando o comportamento
-actual sem Policy sem depender de uma omissão que o Laravel na
-realidade não tem. Os dois itens restantes na secção 4.2, descoberta de
-Policy e bulk actions, não se bloqueiam entre si nem bloqueiam a
-implementação da forma que a secção 4.1 bloqueava, podem ser resolvidos a
-par do primeiro código a sério, o `API/Export` mantém-se uma restrição
-assinalada, não um bloqueio.
+resolução realmente funcionar contra Policies normais do Laravel. As
+restantes questões da secção 4.2 também estão fechadas: a omissão sem
+Policy corrigida contra o comportamento real de negar-por-omissão do
+`Gate`, e não contra o pressuposto anterior (o `ActionRunner` só
+autoriza quando existe mesmo uma Policy para o model, preservando o
+comportamento actual sem Policy sem depender de uma omissão que o
+Laravel na realidade não tem); a descoberta de Policy confia
+inteiramente no próprio mecanismo do Laravel, sem nenhuma declaração
+`->policy()` acrescentada ao `ResourceMetadata`; as bulk actions
+abortam na primeira negação, sem ignorar em silêncio nem assumir
+semântica de rollback. O `API/Export` mantém-se o único item em
+aberto, uma restrição assinalada, não um bloqueio.

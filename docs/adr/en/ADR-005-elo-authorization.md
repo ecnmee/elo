@@ -155,15 +155,17 @@ building before a second real shape proves it's needed.
 
 ### 4.2 Still open
 
-- **Policy discovery.** Laravel auto-discovers a Policy from a Model
-  class by naming convention. Does Elo rely on that entirely (a
-  Resource with no discoverable Policy simply has no authorization,
-  matching Laravel's own default-open behavior), or does `Resource`
-  gain an explicit `->policy()` declaration on `ResourceMetadata` for
-  the cases naming convention won't reach? Leaning toward relying on
-  Laravel's own discovery first, adding an override only once a real
-  Resource's Policy can't be found by convention, the same "ship the
-  honest subset" precedent `Number` and `BelongsTo` both followed.
+- **Policy discovery.** Resolved. Elo relies entirely on Laravel's own
+  Policy discovery mechanism, both naming-convention discovery and a
+  Policy registered explicitly via `Gate::policy()` by the consuming
+  application. `ResourceMetadata` gains no `->policy()` declaration of
+  its own in this version; Elo does not add a second discovery layer
+  on top of one Laravel already has. This preserves the right
+  boundary: Elo uses the Gate, the application decides how its own
+  Policies are discovered or registered. Revisit only once a real
+  Resource's Policy genuinely can't be found by convention or explicit
+  registration, the same "ship the honest subset" precedent `Number`
+  and `BelongsTo` both followed.
 - **What happens with no Policy at all.** Resolved, and corrected
   against the real behavior, not the earlier assumption. Verified
   against `Illuminate\Auth\Access\Gate`: a Resource whose Model has no
@@ -184,11 +186,21 @@ building before a second real shape proves it's needed.
   A Policy that exists but has no method for the given ability still
   denies, correctly, by Laravel's own default, that part of the
   original intent was right.
-- **Bulk actions.** `ResourceTable`'s bulk actions run against every
-  selected id. Authorization presumably needs to check every record,
-  not just the first, what happens when some are authorized and others
-  aren't, silently skip the unauthorized ones, or fail the whole batch?
-  Not designed here.
+- **Bulk actions.** Resolved: the first denial interrupts execution of
+  the remaining operations. Authorization is evaluated individually
+  per record; a denial raises the Gate's ordinary exception and
+  `runBulk()` does not catch it to silently filter out unauthorized
+  records. This version defines no rollback for records whose Action
+  already ran before the denial, and no partial-success semantics
+  ("3 of 5 processed") either, both stay genuinely undesigned rather
+  than assumed. Skipping the unauthorized records and processing the
+  rest was considered and set aside: it immediately raises questions
+  this version can't answer (is the person told which records were
+  skipped, does the table reflect a partial result, does one failed
+  Action among the authorized ones stop the rest), none of them
+  Gate-authorization questions, all of them product/UX design this
+  ADR isn't the place to invent, and `ResourceTable` has no concept of
+  a partial result today regardless.
 - **API/Export.** ADR-004 section 3 already named these as future consumers of
   a Field's declaration. The same is true here, whatever shape
   authorization takes needs to make sense for a future API layer too,
@@ -214,15 +226,16 @@ building before a second real shape proves it's needed.
 
 ## 6. Status
 
-Proposed, two questions resolved. Section 4.1 is closed, `Action` stays
+Proposed, four questions resolved. Section 4.1 is closed, `Action` stays
 actor-unaware, `ActionRunner` becomes the actor-aware party, section 3.3's
 `findModel()` is what makes that resolution actually work against
-ordinary Laravel Policies. Section 4.2's no-Policy question is also closed,
-corrected against `Gate`'s real default-deny behavior rather than the
-earlier assumption: `ActionRunner` only authorizes when a Policy
-actually exists for the model, preserving today's no-Policy behavior
-without relying on a default that Laravel doesn't actually have. The
-two remaining items in section 4.2, Policy discovery and bulk actions, don't
-block each other and don't block implementation the way section 4.1 did,
-they can be settled alongside the first real code, `API/Export` stays
-a flagged constraint, not a blocker.
+ordinary Laravel Policies. Section 4.2's remaining questions are also
+closed: no-Policy corrected against `Gate`'s real default-deny behavior
+rather than the earlier assumption (`ActionRunner` only authorizes when
+a Policy actually exists for the model, preserving today's no-Policy
+behavior without relying on a default that Laravel doesn't actually
+have); Policy discovery relies entirely on Laravel's own mechanism, no
+`->policy()` declaration added to `ResourceMetadata`; bulk actions abort
+on the first denial, no silent skip and no rollback semantics claimed
+for records an Action already ran before the denial. `API/Export`
+remains the one open item, a flagged constraint, not a blocker.
