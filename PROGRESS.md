@@ -153,6 +153,27 @@ both layouts, nothing duplicated). No relationship Field type yet
 dialog instead of the browser's native one, both still open, tracked
 below.
 
+**Just shipped: a branded confirm modal, replacing `wire:confirm`**
+
+- The browser's native `confirm()` (behind Livewire's `wire:confirm`) is
+  gone from both call sites that used it, `ResourceTable`'s row Delete
+  and its bulk actions. Replaced with one small Alpine-driven modal,
+  `resources/views/partials/confirm-modal.blade.php`, included once in
+  the shared shell (`layouts/app.blade.php`), not per-component. Livewire
+  v3 already ships Alpine, no new dependency.
+- Deliberately a single reusable dialog, not a general dialog/stack/
+  promise system: any button anywhere dispatches one browser event,
+  `elo:confirm`, carrying a message and an `onConfirm` closure that
+  calls the Livewire method directly (`$wire.delete(...)`,
+  `$wire.runBulkAction(...)`); the modal itself knows nothing about
+  `ResourceTable`. No focus-trap plugin either, Escape and clicking the
+  overlay both close it, that's the accessibility baseline for now, a
+  second real dialog need is what would justify more.
+- `ResourceTable`'s own Livewire methods (`delete()`, `runBulkAction()`)
+  are unchanged, existing tests that call them directly
+  (`->call('delete', $id)`) still pass untouched, only the Blade markup
+  around the two buttons changed.
+
 **In progress: ADR-005, first open question resolved**
 
 - Section 4.1 closed: `Action` stays actor-unaware, `ActionRunner` becomes

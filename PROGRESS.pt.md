@@ -162,6 +162,29 @@ relação (`Order` não consegue declarar "pertence a Customer"), e sem uma
 caixa de confirmação com a marca do Elo em vez da nativa do browser,
 ambos ainda em aberto, registados abaixo.
 
+**Acabado de lançar: um modal de confirmação com a marca do Elo, a substituir o `wire:confirm`**
+
+- O `confirm()` nativo do browser (por trás do `wire:confirm` do
+  Livewire) desapareceu dos dois pontos onde era usado: o Delete de
+  linha do `ResourceTable` e as suas bulk actions. Substituído por um
+  modal pequeno, controlado por Alpine,
+  `resources/views/partials/confirm-modal.blade.php`, incluído uma vez
+  na shell partilhada (`layouts/app.blade.php`), não por componente. O
+  Livewire v3 já traz o Alpine, sem dependência nova.
+- Deliberadamente um único diálogo reutilizável, não um sistema geral
+  de dialogs/pilha/promises: qualquer botão em qualquer sítio despacha
+  um único evento do browser, `elo:confirm`, carregando uma mensagem e
+  uma closure `onConfirm` que chama o método Livewire directamente
+  (`$wire.delete(...)`, `$wire.runBulkAction(...)`); o modal em si não
+  sabe nada sobre o `ResourceTable`. Também sem plugin de focus-trap,
+  Escape e clicar fora fecham os dois, essa é a base de acessibilidade
+  por agora, uma segunda necessidade real de diálogo é que justificaria
+  mais do que isso.
+- Os próprios métodos Livewire do `ResourceTable` (`delete()`,
+  `runBulkAction()`) não mudaram, os testes existentes que os chamam
+  directamente (`->call('delete', $id)`) continuam a passar sem
+  alteração, só o markup Blade à volta dos dois botões mudou.
+
 **Em curso: ADR-005, primeira questão em aberto resolvida**
 
 - Secção 4.1 fechado: a `Action` mantém-se sem conhecimento do actor, o
