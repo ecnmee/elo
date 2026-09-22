@@ -21,8 +21,8 @@
 <p align="center">
   <img alt="PHP" src="https://img.shields.io/badge/PHP-%3E%3D8.2-777bb4">
   <img alt="Laravel" src="https://img.shields.io/badge/Laravel-11%20%7C%2012%20%7C%2013-ff2d20">
+  <img alt="Livewire" src="https://img.shields.io/badge/Livewire-3-4e56a6">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-blue">
-  <img alt="Status" src="https://img.shields.io/badge/status-in%20development-yellow">
 </p>
 
 ---
