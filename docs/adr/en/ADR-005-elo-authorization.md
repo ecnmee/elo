@@ -1,8 +1,8 @@
 🇬🇧 English | 🇵🇹 [Português](../pt/ADR-005-elo-authorization.md)
 
-# ADR-005 - Authorization (draft)
+# ADR-005 - Authorization
 
-**Status:** Proposed, not yet accepted, written for review before any code
+**Status:** Accepted
 **Date:** 2026-09-09
 **Depends on:** ADR-001 (Architecture), ADR-002 (Philosophy), ADR-004 (Relation Field, precedent for how this ADR is structured)
 
@@ -226,7 +226,7 @@ building before a second real shape proves it's needed.
 
 ## 6. Status
 
-Proposed, four questions resolved. Section 4.1 is closed, `Action` stays
+Accepted, implemented, and tested. Section 4.1 is closed, `Action` stays
 actor-unaware, `ActionRunner` becomes the actor-aware party, section 3.3's
 `findModel()` is what makes that resolution actually work against
 ordinary Laravel Policies. Section 4.2's remaining questions are also

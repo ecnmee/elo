@@ -8,103 +8,90 @@ linguagem simples, actualizada à medida que o projecto avança.
 
 ---
 
-## Estado actual: o "PostResource de ponta a ponta" está fechado
+## Estado actual: a autorização (ADR-005) e a demo de referência estão ambas concluídas
 
 **O que já está feito:**
 
-- Arquitectura congelada em três ADRs: hierarquia e contratos, filosofia e
-  limites, vocabulário oficial.
+- Arquitectura congelada em cinco ADRs, todas Aceites: hierarquia e
+  contratos (ADR-001), filosofia e fronteiras (ADR-002), vocabulário
+  oficial (ADR-003), o Field de Relação / `BelongsTo` (ADR-004), e
+  autorização (ADR-005).
 - Pacote Composer configurado, com toda a stack de qualidade: PHPStan,
-  Pint, Pest, e integração contínua.
-- Primeiro teste de arquitectura em vigor e a passar, falha automaticamente
-  o CI se o core alguma vez passar a depender de um módulo de terceiros
-  específico, transforma uma regra escrita numa regra aplicada.
-- Os sete contratos públicos (`Module`, `Resource`, `Blueprint`, `Field`,
-  `Action`, `Layout`, `Repository`) implementados como esqueletos tipados,
-  cada um com testes unitários que cobrem o seu comportamento central: a
-  imutabilidade do Blueprint, a regra de identidade separada de persistência
-  do Field, os hooks opcionais do Module, e os cinco tipos de Layout da v1
-  (Section, Tabs, Grid, Card, Column).
-- Tokens de design (`tokens.css`) e uma folha de estilo base mínima
-  (`elo.css`), CSS puro, sem Tailwind, sem UI kit de terceiros, delimitado
-  sob `.elo-panel` para o pacote nunca vazar estilos para o site anfitrião.
-- `EloquentRepository`, o único `Repository` na v1, e a conclusão do
-  contrato `Resource::repository()`.
-- `ResourceForm`, o primeiro componente Livewire real: renderiza o
-  Blueprint de um Resource como formulário de criação/edição, resolve a
-  ordem dos campos a partir do Layout (ou cai para a ordem de declaração
-  quando não há nenhum), deriva a validação directamente do
-  `isRequiredOn()` de cada Field, e grava através do Repository do
-  Resource. Testado de ponta a ponta contra um Model Eloquent real numa
-  base de dados em memória: criação, validação, edição, e o evento
-  `elo-resource-saved`.
-- Rotas: um `ResourceController` genérico (criar/editar, nunca um
-  controller por Resource), com rotas geradas automaticamente a partir de
-  um mapeamento slug-para-Resource num `config/elo.php` publicável. A
-  descoberta completa de Modules ainda não está ligada, esta é
-  deliberadamente a versão mínima real, um mapa mantido à mão, até
-  aparecer um caso real que peça mais. `php artisan vendor:publish
-  --tag=elo-assets` publica o `elo.css` para onde as rotas conseguem de
-  facto carregá-lo.
-- O helper `elo()` do front-end: `elo()->resource('posts')->where(...)->get()`,
-  resolve um Resource registado pelo slug e devolve o seu `RepositoryQuery`
-  directamente. Só `resource()` existe, `settings()`, `menu()`, e `form()`
-  do esboço original da ADR ainda não têm um caso real por trás.
-- Um `PostResource` completo e realista em `examples/`, código de
-  referência para copiar para uma aplicação real, deliberadamente não
-  distribuído como parte do pacote instalável (um Post de blog é
-  específico de domínio, o core mantém-se pequeno de propósito).
-- O motor do `elo:sync`: `ColumnDefinition`, `Operation` e as suas duas
-  implementações v1 (`CreateTable`, `AddColumn`), `MigrationWriter`,
-  `SchemaSnapshot`, e `SchemaDiff`, tudo testado, incluindo migrations
-  geradas a correr de verdade contra SQLite. Aditivo apenas por
-  construção, uma coluna existente nunca é alterada nem removida, por
-  isso uma coluna acrescentada à mão fora do Elo sobrevive sempre a um
-  sync.
-- `elo:sync`, o comando artisan em si. Lê cada Resource em
-  `config('elo.resources')`, compara os seus Fields contra a tabela do
-  seu Repository, e escreve uma única migration com o que faltar em todos
-  eles, nada de todo quando já está tudo em sincronia. Fecha uma emenda
-  ao contrato pelo caminho, `Repository::table()`, o mesmo tipo de
-  conclusão a posteriori que `Resource::repository()` foi, o contrato
-  ficou em silêncio sobre isto até uma implementação real precisar de
-  saber.
-- `ResourceTable`, o segundo componente Livewire real: lista os registos
-  de um Resource, ordenável por coluna, paginado, com apagar em linha.
-  Completa o `RepositoryQuery` com `paginate()`, o mesmo tipo de conclusão
-  a posteriori que `Repository::table()` foi, o `RepositoryQuery` ficou
-  apenas com `where()/orderBy()/get()/first()` até um consumidor real
-  precisar de uma página em vez do conjunto todo. Lê
-  `Blueprint::getFields()` directamente, tal como o `SchemaDiff`, não
-  `getLayout()` como o `ResourceForm` faz, as colunas de uma tabela não
-  são agrupadas em secções da mesma forma que os campos de um formulário,
-  por isso este consumidor continua a não resolver composição da forma
-  que o `ResourceForm` resolve, ver a nota do `BlueprintCompiler` abaixo.
-- O routing ganhou uma terceira rota fixa, `index`, ao lado de `create` e
-  `edit`, resolvida da mesma forma, através do mesmo controller genérico.
-- `ActionRunner`, a ligar o handler de uma `Action` (já testado isolado
-  desde que a `Action` foi lançada) a um Resource real: resolve uma
-  Action por id a partir do Blueprint, carrega o registo através do
-  Repository, corre o handler, guarda o que ele devolver. O
-  `ResourceTable` agora renderiza acções de linha como botões por
-  registo e acções em massa numa toolbar acima da tabela, ambas ligadas
-  directamente ao `ActionRunner`. `Delete` continua um método próprio da
-  tabela, sempre disponível, não uma `Action`, toda a tabela precisa
-  dele independentemente do que um Resource declare.
-- `ModuleRegistry` e `ResourceLocator`, a fechar D1/D2. Módulos de
-  terceiros registam-se através de `elo()->registerModule()` (D2);
-  `Elo::resource()`, `ResourceController`, e `SyncCommand` já não fazem
-  cada um o seu próprio `Config::get("elo.resources.{$slug}")`, os três
-  lêem agora através do `ResourceLocator`, um sítio em vez de três.
-  `Resource::slug()` juntou-se também, um Module declara resources como
-  uma lista simples, algo tem de transformar um class-string num slug
-  navegável, por omissão segue a convenção do nome da classe
-  (`PostResource` -> `posts`), substituível, o mesmo princípio que
-  `Field::attributeName()` já usa contra `attribute()`.
+  Pint, Pest (incluindo um teste de arquitectura que falha o CI se o
+  core alguma vez passar a depender de um módulo de terceiros
+  específico), tudo corrido como um único portão `composer quality`
+  antes de cada commit.
+- Os sete contratos públicos (`Module`, `Resource`, `Blueprint`,
+  `Field`, `Action`, `Layout`, `Repository`) implementados como
+  esqueletos tipados, cada um com testes unitários. O `Repository`
+  ganhou `table()`, `findModel()`, e `modelClass()` a posteriori, o
+  mesmo padrão de "o contrato fica em silêncio até um consumidor real
+  precisar" que a arquitectura inteira segue, não três abstrações
+  construídas antes de serem precisas.
+- Três tipos de Field já existem: `Text`, `Number`, e `BelongsTo`
+  (ADR-004), o último ligado de ponta a ponta, um select populado a
+  partir da Resource relacionada no `ResourceForm`, o valor de exibição
+  do registo relacionado em vez da chave estrangeira em bruto no
+  `ResourceTable`, agrupado num único `whereIn()` em vez de uma query
+  por linha, e uma migração de chave estrangeira gerada pelo
+  `elo:sync`.
+- Tokens de design (`tokens.css`) e uma folha de estilos base mínima
+  (`elo.css`), variáveis CSS simples, sem Tailwind, sem kit de UI de
+  terceiros, isolada dentro de `.elo-panel` para o pacote nunca
+  vazar estilos para o site anfitrião. Inclui um modal de confirmação
+  com a marca do Elo, controlado por Alpine (o Livewire v3 já traz o
+  Alpine, sem dependência nova), a substituir o `confirm()` nativo do
+  browser no Delete de linha e nas bulk actions do `ResourceTable`.
+- `EloquentRepository`, o único `Repository` na v1.
+- `ResourceForm` e `ResourceTable`, os dois componentes Livewire reais:
+  o primeiro renderiza o Blueprint de uma Resource como formulário de
+  criar/editar, resolvendo a ordem dos campos a partir do Layout,
+  derivando a validação de `isRequiredOn()` de cada Field, gravando
+  através do Repository; o segundo lista os registos de uma Resource,
+  ordenável por coluna, paginado, com delete inline. Ambos correm
+  Actions, de linha e bulk, através do `ActionRunner`.
+- Routing completo: três rotas fixas (`index`, `create`, `edit`)
+  através de um único `ResourceController` genérico, nunca um
+  controller por Resource, resolvido por slug através do
+  `ResourceLocator`. O `ModuleRegistry` está ligado, as Resources de um
+  Module de terceiros aparecem automaticamente, não só as de
+  `config('elo.resources')`.
+- `Navigation`, a construir o menu lateral agrupado directamente a
+  partir do `ResourceMetadata` de cada Resource registada (label,
+  ícone, navigationGroup), pela ordem em que as Resources são
+  encontradas, config antes dos Modules.
+- Autorização (ADR-005): `ActionRunner`, `Navigation`, e
+  `ResourceController` verificam todos o próprio `Gate` do Laravel,
+  `viewAny`/`create`/`update` para o CRUD, o id da Action para as
+  acções de linha e bulk, sempre que existe mesmo uma Policy registada
+  para o model da Resource. Sem nenhuma Policy registada, o
+  comportamento mantém-se inalterado em relação a antes da ADR-005
+  existir, verificado contra o código-fonte real do `Gate`, não
+  assumido. Totalmente implementado e testado na suite própria do
+  pacote; a demo de referência não traz nenhuma Policy própria, por
+  isso é uma capacidade que existe e está testada, não uma que hoje
+  seja visível na demo.
+- O motor `elo:sync`: `ColumnDefinition`, `Operation` e as suas três
+  implementações v1 (`CreateTable`, `AddColumn`, `AddForeignKey`),
+  `MigrationWriter`, `SchemaSnapshot`, e `SchemaDiff`, e o próprio
+  comando `elo:sync`, um ficheiro de migration por tabela, só aditivo,
+  uma coluna existente nunca é alterada nem apagada.
+- O helper `elo()` do lado do frontend:
+  `elo()->resource('posts')->where(...)->get()`. Só `resource()`
+  existe, `settings()`, `menu()`, e `form()` do esboço original da ADR
+  continuam sem um caso real por trás deles.
+- Uma `PostResource` completa e realista em `examples/`, código de
+  referência para ser copiado para uma app real, deliberadamente não
+  enviado como parte do pacote instalável.
+- Uma aplicação de demo de referência completa (`demo.elo`, não
+  enviada com o pacote): `Product`, `Service`, `Customer`, e `Order`
+  sob um `BusinessModule`, com `Order` a ter mesmo `belongsTo`
+  `Customer` e `Product`, não um campo de texto livre de substituição.
+- Laravel 11, 12, e 13 todos suportados.
 
-**A seguir:**
+**A construir a demo, descobertas reais pelo caminho:**
 
-Ainda a construir a demo real (`Product`, `Service`, `Customer`, `Order`
+A construir a demo real (`Product`, `Service`, `Customer`, `Order`
 num `BusinessModule`). Duas descobertas reais até agora, não planeadas,
 ambas corrigidas directamente, não adiadas: Laravel 13 não era suportado,
 `illuminate/support` estava preso a `^11.0|^12.0`, alargado para

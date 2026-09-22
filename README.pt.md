@@ -20,7 +20,7 @@
 
 <p align="center">
   <img alt="PHP" src="https://img.shields.io/badge/PHP-%3E%3D8.2-777bb4">
-  <img alt="Laravel" src="https://img.shields.io/badge/Laravel-11%20%7C%2012-ff2d20">
+  <img alt="Laravel" src="https://img.shields.io/badge/Laravel-11%20%7C%2012%20%7C%2013-ff2d20">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-blue">
   <img alt="Status" src="https://img.shields.io/badge/status-em%20desenvolvimento-yellow">
 </p>
@@ -39,7 +39,7 @@ na forma como o site do teu cliente realmente pensa o seu conteúdo.
 **O Elo não é mais um gerador de CRUD.** Descreves o domínio do teu site em
 PHP simples, usando sete conceitos, `Module`, `Resource`, `Blueprint`,
 `Field`, `Layout`, `Action`, `Repository`, e o Elo constrói a interface de
-gestão, a API, e as migrations da base de dados à volta disso. O teu CSS.
+gestão e as migrations da base de dados à volta disso. O teu CSS.
 A tua aplicação Laravel. Sem caixa preta.
 
 ```php
@@ -90,8 +90,9 @@ composer require ecnmee/elo
 ## Construído em aberto, arquitectura primeiro
 
 Antes de escrever qualquer código de implementação, a arquitectura completa
-foi trabalhada e congelada em três ADRs públicas, hierarquia e contratos,
-filosofia e limites, vocabulário oficial, todas em [`docs/adr/`](docs/adr).
+foi trabalhada e congelada em cinco ADRs públicas, hierarquia e contratos,
+filosofia e limites, vocabulário oficial, o field de relação, e
+autorização, todas em [`docs/adr/`](docs/adr).
 Cada classe do core vem com testes que validam o contrato público, e o CI
 falha automaticamente se o core alguma vez passar a depender de um módulo
 de terceiros específico. Se quiseres ver o raciocínio por trás de cada

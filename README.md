@@ -20,7 +20,7 @@
 
 <p align="center">
   <img alt="PHP" src="https://img.shields.io/badge/PHP-%3E%3D8.2-777bb4">
-  <img alt="Laravel" src="https://img.shields.io/badge/Laravel-11%20%7C%2012-ff2d20">
+  <img alt="Laravel" src="https://img.shields.io/badge/Laravel-11%20%7C%2012%20%7C%2013-ff2d20">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-blue">
   <img alt="Status" src="https://img.shields.io/badge/status-in%20development-yellow">
 </p>
@@ -38,8 +38,8 @@ actually thinks about its content.
 
 **Elo is not another CRUD generator.** You describe your site's domain in
 plain PHP, using seven concepts, `Module`, `Resource`, `Blueprint`, `Field`,
-`Layout`, `Action`, `Repository`, and Elo builds the management interface,
-the API, and the database migrations around it. Your CSS. Your Laravel
+`Layout`, `Action`, `Repository`, and Elo builds the management interface
+and the database migrations around it. Your CSS. Your Laravel
 app. No black box.
 
 ```php
@@ -90,8 +90,9 @@ composer require ecnmee/elo
 ## Built in the open, architecture-first
 
 Before writing implementation code, the full architecture was worked
-through and frozen across three public ADRs, hierarchy and contracts,
-philosophy and boundaries, official vocabulary, all in [`docs/adr/`](docs/adr).
+through and frozen across five public ADRs, hierarchy and contracts,
+philosophy and boundaries, official vocabulary, the relation field, and
+authorization, all in [`docs/adr/`](docs/adr).
 Every core class ships with tests that verify the public contract, and CI
 fails automatically if the core ever ends up depending on a specific
 third-party module. If you want to see the reasoning behind every decision,

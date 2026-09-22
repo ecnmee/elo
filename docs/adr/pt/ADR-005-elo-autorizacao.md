@@ -1,9 +1,8 @@
 🇵🇹 Português | 🇬🇧 [English](../en/ADR-005-elo-authorization.md)
 
-# ADR-005 - Autorização (rascunho)
+# ADR-005 - Autorização
 
-**Estado:** Proposta, ainda não aceite, escrita para revisão antes de
-qualquer código
+**Estado:** Aceite
 **Data:** 2026-09-09
 **Depende de:** ADR-001 (Arquitetura), ADR-002 (Filosofia), ADR-004
 (Field de Relação, precedente de como esta ADR está estruturada)
@@ -239,7 +238,7 @@ segunda forma real provar que é precisa.
 
 ## 6. Estado
 
-Proposta, quatro questões resolvidas. A secção 4.1 está fechada, a `Action`
+Aceite, implementada e testada. A secção 4.1 está fechada, a `Action`
 mantém-se sem conhecimento do actor, o `ActionRunner` passa a ser a
 parte consciente do actor, o `findModel()` da secção 3.3 é o que torna essa
 resolução realmente funcionar contra Policies normais do Laravel. As

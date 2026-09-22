@@ -8,99 +8,82 @@ as things move forward.
 
 ---
 
-## Current stage: "PostResource end to end" is closed
+## Current stage: authorization (ADR-005) and the reference demo are both complete
 
 **What's done:**
 
-- Architecture frozen across three ADRs: hierarchy and contracts, philosophy
-  and boundaries, official vocabulary.
-- Composer package configured, along with the full quality stack: PHPStan,
-  Pint, Pest, and continuous integration.
-- First architecture test in place and passing, it automatically fails CI
-  if the core ever ends up depending on a specific third-party module,
-  turning a written rule into an enforced one.
+- Architecture frozen across five ADRs, all Accepted: hierarchy and
+  contracts (ADR-001), philosophy and boundaries (ADR-002), official
+  vocabulary (ADR-003), the Relation Field / `BelongsTo` (ADR-004), and
+  authorization (ADR-005).
+- Composer package configured, along with the full quality stack:
+  PHPStan, Pint, Pest (including an arch test that fails CI if the core
+  ever ends up depending on a specific third-party module), all run as
+  one `composer quality` gate before every commit.
 - The seven public contracts (`Module`, `Resource`, `Blueprint`, `Field`,
   `Action`, `Layout`, `Repository`) implemented as typed skeletons, each
-  with unit tests covering their core behavior: Blueprint's immutability,
-  Field's identity-separate-from-persistence rule, Module's optional hooks,
-  and the five v1 Layout types (Section, Tabs, Grid, Card, Column).
+  with unit tests. `Repository` gained `table()`, `findModel()`, and
+  `modelClass()` after the fact, the same "contract stays silent until a
+  real consumer needs it" pattern the whole architecture follows, not
+  three separate abstractions built ahead of need.
+- Three Field types ship: `Text`, `Number`, and `BelongsTo` (ADR-004),
+  the last one wired end to end, a select populated from the related
+  Resource in `ResourceForm`, the related record's display value instead
+  of the raw foreign key in `ResourceTable`, batched via a single
+  `whereIn()` rather than one query per row, and a generated foreign key
+  migration through `elo:sync`.
 - Design tokens (`tokens.css`) and a minimal base stylesheet (`elo.css`),
-  plain CSS custom properties, no Tailwind, no third-party UI kit, scoped
-  under `.elo-panel` so the package never leaks styles into the host site.
-- `EloquentRepository`, the only `Repository` in v1, and the
-  `Resource::repository()` contract completion.
-- `ResourceForm`, the first real Livewire component: renders a Resource's
-  Blueprint as a create/edit form, resolves field order from the Layout
-  (or falls back to declaration order when there isn't one), derives
-  validation directly from each Field's `isRequiredOn()`, and saves through
-  the Resource's Repository. Tested end to end against a real Eloquent
-  model on an in-memory database, creating, validating, editing, and the
-  `elo-resource-saved` event.
-- Routing: a generic `ResourceController` (create/edit, never one
-  controller per Resource) plus routes generated automatically from a
-  slug-to-Resource map in a publishable `config/elo.php`. Full Module
-  discovery isn't wired in yet, this is deliberately the minimal real
-  version, a hand-maintained map, until a real case asks for more.
-  `php artisan vendor:publish --tag=elo-assets` publishes `elo.css` where
-  routes can actually load it from.
-- The `elo()` front-end helper: `elo()->resource('posts')->where(...)->get()`,
-  resolving a registered Resource by slug and returning its
-  `RepositoryQuery` directly. Only `resource()` exists, `settings()`,
-  `menu()`, and `form()` from the original ADR sketch don't have a real
-  case behind them yet.
+  plain CSS custom properties, no Tailwind, no third-party UI kit,
+  scoped under `.elo-panel` so the package never leaks styles into the
+  host site. Includes a branded confirm modal, Alpine-driven (Livewire
+  v3 ships Alpine already, no new dependency), replacing the browser's
+  native `confirm()` at `ResourceTable`'s row Delete and bulk actions.
+- `EloquentRepository`, the only `Repository` in v1.
+- `ResourceForm` and `ResourceTable`, the two real Livewire components:
+  the first renders a Resource's Blueprint as a create/edit form,
+  resolving field order from the Layout, deriving validation from each
+  Field's `isRequiredOn()`, saving through the Repository; the second
+  lists a Resource's records, sortable per column, paginated, with
+  delete inline. Both drive `Action`s, row and bulk, through
+  `ActionRunner`.
+- Full routing: three fixed routes (`index`, `create`, `edit`) through
+  one generic `ResourceController`, never one controller per Resource,
+  resolved by slug through `ResourceLocator`. `ModuleRegistry` is wired
+  in, a third-party Module's Resources appear automatically, not only
+  `config('elo.resources')`.
+- `Navigation`, building the grouped sidebar menu straight from every
+  registered Resource's own `ResourceMetadata` (label, icon,
+  navigationGroup), in the order Resources are encountered, config
+  before Modules.
+- Authorization (ADR-005): `ActionRunner`, `Navigation`, and
+  `ResourceController` all check Laravel's own `Gate`, `viewAny`/
+  `create`/`update` for CRUD, the Action's id for row and bulk actions,
+  whenever a Policy is actually registered for the Resource's model.
+  With no Policy registered, behavior is unchanged from before ADR-005
+  existed, verified against `Gate`'s real source, not assumed. Fully
+  implemented and tested in the package's own suite; the reference demo
+  ships no Policy of its own, so this is a capability that exists and is
+  tested, not one currently visible in the demo.
+- The `elo:sync` engine: `ColumnDefinition`, `Operation` and its three
+  v1 implementations (`CreateTable`, `AddColumn`, `AddForeignKey`),
+  `MigrationWriter`, `SchemaSnapshot`, and `SchemaDiff`, and the
+  `elo:sync` command itself, one migration file per table, additive
+  only, an existing column is never altered or dropped.
+- The `elo()` front-end helper: `elo()->resource('posts')->where(...)->get()`.
+  Only `resource()` exists, `settings()`, `menu()`, and `form()` from
+  the original ADR sketch still don't have a real case behind them.
 - A complete, realistic `PostResource` in `examples/`, reference code
-  meant to be copied into a real app, deliberately not shipped as part of
-  the installable package (a blog Post is domain-specific, the core stays
-  small on purpose).
-- The `elo:sync` engine: `ColumnDefinition`, `Operation` and its two v1
-  implementations (`CreateTable`, `AddColumn`), `MigrationWriter`,
-  `SchemaSnapshot`, and `SchemaDiff`, all tested, including generated
-  migrations run for real against SQLite. Additive only by construction,
-  an existing column is never altered or dropped, so a column added by
-  hand outside Elo always survives a sync run.
-- `elo:sync`, the artisan command itself. Reads every Resource in
-  `config('elo.resources')`, diffs its Fields against its Repository's
-  table, and writes a single migration with whatever's missing across all
-  of them, nothing at all when everything's already in sync. Closes a
-  contract amendment along the way, `Repository::table()`, the same kind
-  of after-the-fact completion as `Resource::repository()` was, the
-  contract stayed silent on it until a real implementation needed to
-  know.
-- `ResourceTable`, the second real Livewire component: lists a Resource's
-  records, sortable per column, paginated, with delete inline. Completes
-  `RepositoryQuery` with `paginate()`, the same kind of after-the-fact
-  contract completion `Repository::table()` was, `RepositoryQuery` stayed
-  a plain `where()/orderBy()/get()/first()` set until a real consumer
-  needed a page instead of the whole set. Reads `Blueprint::getFields()`
-  directly, the same as `SchemaDiff`, not `getLayout()` the way
-  `ResourceForm` does, a table's columns aren't grouped into sections the
-  way a form's inputs are, so this consumer still doesn't resolve
-  composition the way `ResourceForm` does, see the `BlueprintCompiler`
-  note below.
-- Routing gained a third fixed route, `index`, alongside `create` and
-  `edit`, resolving the same way, through the same generic controller.
-- `ActionRunner`, connecting `Action`'s handler (already tested in
-  isolation since `Action` itself shipped) to a real Resource: resolves
-  an Action by id from the Blueprint, loads the record through the
-  Repository, runs the handler, saves whatever attributes it returns.
-  `ResourceTable` now renders row actions as buttons per record and bulk
-  actions in a toolbar above the table, both wired straight through
-  `ActionRunner`. `Delete` stays a separate, always-available table
-  method, not an `Action`, every table needs it regardless of what a
-  Resource declares.
-- `ModuleRegistry` and `ResourceLocator`, closing D1/D2. Third-party
-  Modules register through `elo()->registerModule()` (D2); `Elo::resource()`,
-  `ResourceController`, and `SyncCommand` no longer each do their own
-  `Config::get("elo.resources.{$slug}")`, all three now read through
-  `ResourceLocator`, one place instead of three. `Resource::slug()`
-  joined too, a Module declares resources as a plain list, something has
-  to turn a class-string into a routable slug, it defaults to the class
-  name convention (`PostResource` -> `posts`), overridable, the same
-  idiom `Field::attributeName()` already uses against `attribute()`.
+  meant to be copied into a real app, deliberately not shipped as part
+  of the installable package.
+- A full reference demo application (`demo.elo`, not shipped with the
+  package): `Product`, `Service`, `Customer`, and `Order` under a
+  `BusinessModule`, `Order` genuinely `belongsTo` `Customer` and
+  `Product`, not a placeholder free-text field.
+- Laravel 11, 12, and 13 all supported.
 
-**Next up:**
+**Building the demo, real findings along the way:**
 
-Still building the real demo application (`Product`, `Service`,
+Building the real demo application (`Product`, `Service`,
 `Customer`, `Order` on a `BusinessModule`). Two real, unplanned findings
 so far, both fixed directly, not deferred: Laravel 13 wasn't supported,
 `illuminate/support` was pinned to `^11.0|^12.0`, widened to
