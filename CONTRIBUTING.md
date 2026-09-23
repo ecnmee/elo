@@ -9,10 +9,11 @@ project. This repository does not accept direct pull requests to the core.
 
 - **Bugs, features, questions:** open an issue here. It will be triaged and
   considered as part of core development.
-- **Architecture documentation** (ADR-001 Architecture, ADR-002 Philosophy,
-  ADR-003 Language) lives in [`docs/adr/`](docs/adr) and governs every
-  decision made about the project, read it if you want the full reasoning
-  behind how Elo is built, not just the result.
+- **Architecture documentation** (the ADRs covering architecture,
+  philosophy, vocabulary, the relation field, and authorization) is
+  maintained in the private development repository and isn't published
+  here; [PROGRESS.md](PROGRESS.md) is the public, plain-language account
+  of where the project stands.
 
 ## Code of Conduct
 

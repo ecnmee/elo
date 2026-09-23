@@ -2,9 +2,8 @@
 
 # Progresso do Desenvolvimento
 
-Um registo público e contínuo do ponto em que o Elo está. O detalhe técnico
-completo vive em [`docs/adr/`](docs/adr); esta página é a versão em
-linguagem simples, actualizada à medida que o projecto avança.
+Um registo público e contínuo do ponto em que o Elo está, actualizado à
+medida que o projecto avança.
 
 ---
 
@@ -1036,13 +1035,11 @@ nenhuma tabela na demo está perto de precisar deles ainda.
 
 ## Porque existe esta página
 
-O Elo está a ser construído em aberto, e a sua arquitectura foi moldada
-através de um processo invulgarmente cuidadoso antes de qualquer linha de
-código de implementação. Este registo existe para que quem está a
-acompanhar não precise de ler cada commit para perceber o ponto em que as
-coisas estão, é um atalho, não um substituto da documentação real.
+A arquitectura do Elo foi moldada através de um processo invulgarmente
+cuidadoso antes de qualquer linha de código de implementação. Este registo
+existe para que quem está a acompanhar não precise de ler cada commit para
+perceber o ponto em que as coisas estão.
 
 ## Como acompanhar mais de perto
 
 - Star ou watch neste repositório para actualizações.
-- As [ADRs](docs/adr) explicam cada decisão de arquitectura e o raciocínio por trás dela.

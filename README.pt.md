@@ -14,7 +14,6 @@
 
 <p align="center">
   <a href="PROGRESS.pt.md">Acompanha o desenvolvimento</a> ·
-  <a href="docs/adr">Lê a arquitectura</a> ·
   <a href="#instalação">Instalação</a>
 </p>
 
@@ -75,8 +74,7 @@ gerada automaticamente, a partir de umas dez linhas que são realmente tuas.
 
 O Elo não tenta substituir o Laravel, nem tornar-se um CMS. É a peça que
 falta entre "descrevi o meu domínio" e "existe um painel de administração a
-funcionar para ele", nem mais, nem menos. Ver [o que o Elo é, e o que não é](docs/adr/pt/ADR-002-elo-filosofia.md)
-para o limite completo.
+funcionar para ele", nem mais, nem menos.
 
 ## Instalação
 
@@ -87,16 +85,14 @@ composer require ecnmee/elo
 *(Pacote em desenvolvimento activo, ainda não publicado no Packagist, ver
 [PROGRESS.pt.md](PROGRESS.pt.md) para saber exactamente a que distância está.)*
 
-## Construído em aberto, arquitectura primeiro
+## Construído com arquitectura testada e imposta
 
 Antes de escrever qualquer código de implementação, a arquitectura completa
-foi trabalhada e congelada em cinco ADRs públicas, hierarquia e contratos,
-filosofia e limites, vocabulário oficial, o field de relação, e
-autorização, todas em [`docs/adr/`](docs/adr).
-Cada classe do core vem com testes que validam o contrato público, e o CI
-falha automaticamente se o core alguma vez passar a depender de um módulo
-de terceiros específico. Se quiseres ver o raciocínio por trás de cada
-decisão, não só o resultado, está tudo ali para leres.
+foi trabalhada e congelada internamente, hierarquia e contratos, filosofia
+e limites, vocabulário oficial, o field de relação, e autorização. Cada
+classe do core vem com testes que validam o contrato público, e o CI falha
+automaticamente se o core alguma vez passar a depender de um módulo de
+terceiros específico.
 
 ## Guia do utilizador
 

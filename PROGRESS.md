@@ -2,9 +2,7 @@
 
 # Development Progress
 
-A running, public log of where Elo stands. Full technical detail lives in
-[`docs/adr/`](docs/adr); this page is the plain-language version, updated
-as things move forward.
+A running, public log of where Elo stands, updated as things move forward.
 
 ---
 
@@ -956,13 +954,10 @@ to needing them yet.
 
 ## Why this page exists
 
-Elo is being built in the open, and its architecture was shaped through an
-unusually thorough process before any implementation code was written.
-This log exists so anyone following along doesn't need to read every commit
-to understand where things stand, it's a shortcut, not a replacement for
-the real documentation.
+Elo's architecture was shaped through an unusually thorough process before
+any implementation code was written. This log exists so anyone following
+along doesn't need to read every commit to understand where things stand.
 
 ## How to follow more closely
 
 - Star or watch this repository for updates.
-- The [ADRs](docs/adr) explain every architectural decision and the reasoning behind it.

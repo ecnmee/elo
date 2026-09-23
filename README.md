@@ -14,7 +14,6 @@
 
 <p align="center">
   <a href="PROGRESS.md">Follow the build</a> ·
-  <a href="docs/adr">Read the architecture</a> ·
   <a href="#installation">Installation</a>
 </p>
 
@@ -75,8 +74,7 @@ migration, from about ten lines you actually own.
 
 Elo isn't trying to replace Laravel, or become a CMS. It's the missing
 piece between "I described my domain" and "there's a working admin panel
-for it", nothing more, nothing less. See [what Elo is, and isn't](docs/adr/en/ADR-002-elo-philosophy.md)
-for the full boundary.
+for it", nothing more, nothing less.
 
 ## Installation
 
@@ -87,16 +85,14 @@ composer require ecnmee/elo
 *(Package under active development, not yet published on Packagist, see
 [PROGRESS.md](PROGRESS.md) for exactly how close it is.)*
 
-## Built in the open, architecture-first
+## Built with a tested, enforced architecture
 
 Before writing implementation code, the full architecture was worked
-through and frozen across five public ADRs, hierarchy and contracts,
-philosophy and boundaries, official vocabulary, the relation field, and
-authorization, all in [`docs/adr/`](docs/adr).
+through and frozen internally, hierarchy and contracts, philosophy and
+boundaries, official vocabulary, the relation field, and authorization.
 Every core class ships with tests that verify the public contract, and CI
 fails automatically if the core ever ends up depending on a specific
-third-party module. If you want to see the reasoning behind every decision,
-not just the result, it's all there to read.
+third-party module.
 
 ## User guide
 

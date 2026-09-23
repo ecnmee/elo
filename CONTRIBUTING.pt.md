@@ -9,10 +9,11 @@ projecto. Este repositório não aceita pull requests directos ao core.
 
 - **Bugs, funcionalidades, perguntas:** abrir uma issue aqui. Será triada e
   considerada como parte do desenvolvimento do core.
-- **Documentação de arquitectura** (ADR-001 Arquitectura, ADR-002 Filosofia,
-  ADR-003 Linguagem) vive em [`docs/adr/`](docs/adr) e rege toda a decisão
-  tomada sobre o projecto, lê-a se quiseres o raciocínio completo por trás
-  de como o Elo é construído, não só o resultado.
+- **Documentação de arquitectura** (as ADRs de arquitectura, filosofia,
+  vocabulário, field de relação, e autorização) é mantida no repositório
+  de desenvolvimento privado e não é publicada aqui; o
+  [PROGRESS.pt.md](PROGRESS.pt.md) é o relato público, em linguagem
+  simples, do ponto em que o projecto está.
 
 ## Código de conduta
 
